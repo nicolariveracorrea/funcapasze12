@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FUNCAPAZE - App de Reservas</title>
+    
+    <!-- CONFIGURACIÓN PWA DIRECTA -->
+    <meta name="theme-color" content="#10b981">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
+    
+    <style>
+        :root {
+            --bg-page: #030712;
+            --bg-card: #0f172a;
+            --bg-input: #1e293b;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --purple: #8b5cf6;
+            --amber: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+            --neon-blue: #3b82f6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-page); color: var(--text-main); padding: 15px; line-height: 1.5; }
+        .container { max-width: 1200px; margin: 0 auto; position: relative; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header h1 { color: var(--primary); font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .badge { background: rgba(16, 185, 129, 0.2); color: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 11px; border: 1px solid var(--primary); }
+        
+        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .card-header { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 15px; }
+        .card-header h2 { font-size: 18px; margin-top: 5px; }
+        .card-header span { color: var(--text-muted); font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;}
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-agenda { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        
+        label { display: block; font-size: 13px; font-weight: bold; color: var(--text-muted); margin-bottom: 6px; }
+        input, select, textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; text-transform: uppercase; }
+        .btn-primary { background: linear-gradient(to right, #10b981, #14b8a6); color: #022c22; }
+        .btn-primary:hover { background: linear-gradient(to right, #059669, #0d9488); }
+        .btn-purple { background: var(--purple); color: white; }
+        .btn-purple:hover { background: #7c3aed; }
+        .btn-danger { background: var(--danger); color: white; padding: 6px 10px; }
+        .btn-amber { background: linear-gradient(to right, #f59e0b, #d97706); color: #fff; }
+
+        .btn-install-floating {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(to right, #f59e0b, #eab308);
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+            transition: 0.2s;
+        }
+
+        @media (display-mode: standalone) {
+            .btn-install-floating { display: none !important; }
+        }
+
+        .slot { background: var(--bg-input); border: 1px solid var(--border); padding: 12px; border-radius: 10px; text-align: center; position: relative; }
+        .slot.lleno { border-color: var(--danger); opacity: 0.9; }
+        .slot.medio { border-color: var(--amber); }
+        
+        .badge-status { padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; display: inline-block; margin-top: 6px; }
+        .status-disponible { background: var(--primary); color: #022c22; }
+        .status-medio { background: var(--amber); color: #000; }
+        .status-lleno { background: var(--danger); color: white; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th { color: var(--text-muted); text-transform: uppercase; font-size: 10px; padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+        td { padding: 10px; border-bottom: 1px solid var(--border); }
+        
+        .bot-panel { border: 2px dashed var(--neon-blue); background: rgba(59, 130, 246, 0.05); position: relative; overflow: hidden; }
+        .bot-radar { position: absolute; right: -20px; top: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(59,130,246,0.4) 0%, rgba(59,130,246,0) 70%); animation: pulseRadar 2s infinite; border-radius: 50%; pointer-events: none; }
+        
+        .sello-badge { background: var(--amber); color: #000; padding: 3px 6px; border-radius: 10px; font-weight: bold; font-size: 11px; }
+        .gratis-badge { background: var(--primary); color: #000; padding: 3px 6px; border-radius: 10px; font-weight: bold; font-size: 11px; animation: pulse 1.5s infinite; }
+        
+        .indicator-box { background: var(--bg-input); border: 1px solid var(--border); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .expediente-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        @keyframes pulseRadar { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        
+        .main-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        
+        @media (max-width: 850px) { 
+            .main-grid { grid-template-columns: 1fr; } 
+            .grid-2 { grid-template-columns: 1fr; } 
+            body { padding: 10px; }
+            .card { padding: 15px; }
+            .header h1 { font-size: 18px; }
+        }
+
+        .neon-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .neon-modal { background: var(--bg-card); padding: 25px; border-radius: 16px; text-align: center; max-width: 450px; width: 90%; border: 2px solid; animation: popIn 0.3s ease-out; }
+        .neon-modal.info { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        .neon-modal.success { border-color: var(--primary); box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
+        .neon-modal.error { border-color: var(--danger); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+        .neon-modal p { margin-bottom: 15px; font-size: 14px; font-weight: bold; line-height: 1.5; }
+        .btn-modal { padding: 8px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #fff; text-transform: uppercase; }
+        .neon-modal.info .btn-modal { background: var(--neon-blue); }
+        .neon-modal.success .btn-modal { background: var(--primary); }
+        .neon-modal.error .btn-modal { background: var(--danger); }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .cliente-tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin-top: 6px;
+            text-align: left;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="neonModalOverlay" class="neon-modal-overlay">
+        <div id="neonModalBox" class="neon-modal info">
+            <p id="neonModalText">Mensaje aquí</p>
+            <button class="btn-modal" onclick="cerrarModalNeon()">ACEPTAR</button>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="header">
+            <h1>⚽ FUNCAPAZE <span class="badge">SISTEMA</span></h1>
+            <div style="display:flex; align-items:center; gap: 10px; flex-wrap:wrap;">
+                <button id="btnInstalarHeader" class="btn-install-floating" onclick="solicitarInstalacionDirecta()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line><polyline points="12 7 12 13 15 10"></polyline><polyline points="12 13 9 10"></polyline></svg>
+                    INSTALAR APP
+                </button>
+                <strong style="color:var(--primary); font-family:monospace; font-size:14px;">+57 3188385367</strong>
+            </div>
+        </div>
+
+        <div class="card bot-panel">
+            <div class="bot-radar"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h3 style="color:white; display:flex; align-items:center; gap:8px; font-size:16px;">
+                        🤖 Escáner de Formularios <span class="badge" style="background:rgba(59,130,246,0.2); border-color:#3b82f6; color:#60a5fa;">🟢 AUTOMÁTICO</span>
+                    </h3>
+                    <p style="color:var(--text-muted); font-size:12px; margin-top:4px;">Límite: 3 reservas por hora/cancha. Suma sellos automáticamente sin duplicar.</p>
+                </div>
+                <div style="display:flex; gap:8px; width:100%; max-width:350px;">
+                    <button class="btn btn-amber" style="padding:8px 12px; font-size:11px;" onclick="generarResumenSemanal()">
+                        📊 RESUMEN SEMANAL
+                    </button>
+                    <button id="btnBot" class="btn" style="background:#3b82f6; color:white; padding:8px 12px; font-size:11px;" onclick="sincronizarBotReal(true)">
+                        ⚡ LEER AHORA
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            
+            <div class="card">
+                <div class="card-header">
+                    <span style="color:var(--primary);">🎟️ ATENCIÓN EN VENTANILLA</span>
+                    <h2>Ingresar Reserva Manual</h2>
+                </div>
+                
+                <div class="grid-2">
+                    <div>
+                        <label>Nombre del Cliente *</label>
+                        <input type="text" id="clientName" placeholder="Ej: Carlos Gómez">
+                    </div>
+                    <div>
+                        <label>Teléfono / WhatsApp *</label>
+                        <input type="number" id="clientPhone" placeholder="Ej: 3001234567" onkeyup="verificarSellosEnVivo(this.value)">
+                    </div>
+                </div>
+
+                <div id="indicadorBox" class="indicator-box" style="display:none;">
+                    <span style="font-size:12px; color:var(--text-muted);">🏆 Estado de Sellos:</span>
+                    <strong id="indicadorTexto" style="color:var(--amber);">0/10</strong>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label>Fecha Reserva *</label>
+                        <input type="date" id="bookingDate" onchange="renderizarAgenda()">
+                    </div>
+                    <div>
+                        <label>Horario *</label>
+                        <select id="bookingTimeSlot">
+                            <option value="08:00 AM - 09:00 AM">08:00 AM - 09:00 AM</option>
+                            <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                            <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                            <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                            <option value="12:00 PM - 01:00 PM">12:00 PM - 01:00 PM</option>
+                            <option value="01:00 PM - 02:00 PM">01:00 PM - 02:00 PM</option>
+                            <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                            <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+                            <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
+                            <option value="05:00 PM - 06:00 PM">05:00 PM - 06:00 PM</option>
+                            <option value="06:00 PM - 07:00 PM">06:00 PM - 07:00 PM</option>
+                            <option value="07:00 PM - 08:00 PM">07:00 PM - 08:00 PM</option>
+                            <option value="08:00 PM - 09:00 PM">08:00 PM - 09:00 PM</option>
+                            <option value="09:00 PM - 10:00 PM">09:00 PM - 10:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Tipo de Cancha *</label>
+                <select id="courtType" onchange="renderizarAgenda()">
+                    <option value="Fútbol 5">Cancha Sintética Fútbol 5</option>
+                    <option value="Fútbol 8">Cancha Sintética Fútbol 8</option>
+                    <option value="Fútbol 11">Cancha Sintética Fútbol 11</option>
+                </select>
+
+                <button class="btn btn-primary" onclick="registrarReserva()">
+                    ✅ CONFIRMAR Y SUMAR SELLO
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span style="color:var(--purple);">🔗 GOOGLE FORMS</span>
+                    <h2>Enviar Link al Cliente</h2>
+                </div>
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                    El cliente responde el formulario y el Bot procesa su reserva y sellos automáticamente.
+                </p>
+                <div style="background:var(--bg-page); padding:8px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px; font-family:monospace; font-size:10px; color:var(--purple); word-break:break-all;">
+                    https://docs.google.com/forms/d/e/1FAIpQLScv-T16LYiw5ps9Attgt-k7Tre9OgJ4On42CVa4TBKX6c3xLw/viewform              
+                </div>
+                <label>Teléfono del Cliente</label>
+                <input type="number" id="sendLinkPhone" placeholder="Ej: 3001234567">
+                <button class="btn btn-purple" onclick="enviarLink()">
+                    📲 Enviar Formulario por WhatsApp
+                </button>
+            </div>
+            
+        </div>
+
+        <div class="card" style="border-color: var(--amber);">
+            <div class="card-header">
+                <span style="color:var(--amber);">⭐ PROGRAMA DE FIDELIZACIÓN</span>
+                <h2>Consultar Sellos del Cliente</h2>
+            </div>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                Escribe el número del cliente para consultar el total de reservas y cuántos sellos le faltan para la hora <b>GRATIS</b>.
+            </p>
+            <div class="grid-2">
+                <div>
+                    <label>Teléfono del Cliente</label>
+                    <input type="number" id="consultaTelCliente" placeholder="Ej: 3001234567">
+                </div>
+                <div style="display:flex; align-items:flex-start;">
+                    <button class="btn btn-amber" onclick="consultarSellosCliente()">
+                        🔍 CONSULTAR SELLOS
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span style="color:var(--amber);">📁 EXPEDIENTE GENERAL DE SEMANAS</span>
+                <h2>Historial de Reportes Guardados</h2>
+            </div>
+            <div id="expedientesContainer"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <div>
+                    <span style="color:var(--primary);">⏰ DISPONIBILIDAD (Capacidad: 3 por hora)</span>
+                    <h2>Agenda Diaria de Horarios</h2>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted);">
+                    Filtro Activo: <b id="filtroTextoActivo" style="color:var(--amber);">Todas las canchas</b>
+                </div>
+            </div>
+            
+            <div class="grid-agenda" id="agendaGrid"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span style="color:var(--text-muted);">📋 HISTORIAL</span>
+                <h2>Registro de Reservas Confirmadas</h2>
+            </div>
+            <div style="overflow-x:auto;">
+                <table id="tablaReservas">
+                    <thead>
+                        <tr>
+                            <th>CÓDIGO</th>
+                            <th>CLIENTE</th>
+                            <th>CANCHA</th>
+                            <th>FECHA & HORA</th>
+                            <th>SELLO</th>
+                            <th>ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let promptInstalacion = null;
+
+        function verificarEstadoInstalacion() {
+            const esStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            const btn = document.getElementById('btnInstalarHeader');
+            if (esStandalone && btn) {
+                btn.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            promptInstalacion = e;
+        });
+
+        window.addEventListener('appinstalled', () => {
+            promptInstalacion = null;
+            const btn = document.getElementById('btnInstalarHeader');
+            if (btn) btn.style.display = 'none';
+        });
+
+        function solicitarInstalacionDirecta() {
+            if (promptInstalacion) {
+                promptInstalacion.prompt();
+                promptInstalacion.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        promptInstalacion = null;
+                        const btn = document.getElementById('btnInstalarHeader');
+                        if (btn) btn.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        document.getElementById('bookingDate').valueAsDate = new Date();
+
+        let reservas = JSON.parse(localStorage.getItem('funcapaze_reservas')) || [];
+        let expedientes = JSON.parse(localStorage.getItem('funcapaze_expedientes')) || [];
+        let procesadasBot = JSON.parse(localStorage.getItem('funcapaze_procesadas_bot')) || [];
+
+        const horarios = [
+            "08:00 AM - 09:00 AM", "09:00 AM - 10:00 AM", "10:00 AM - 11:00 AM",
+            "11:00 AM - 12:00 PM", "12:00 PM - 01:00 PM", "01:00 PM - 02:00 PM",
+            "02:00 PM - 03:00 PM", "03:00 PM - 04:00 PM", "04:00 PM - 05:00 PM",
+            "05:00 PM - 06:00 PM", "06:00 PM - 07:00 PM", "07:00 PM - 08:00 PM",
+            "08:00 PM - 09:00 PM", "09:00 PM - 10:00 PM"
+        ];
+
+        function mostrarAlerta(mensaje, tipo) {
+            const overlay = document.getElementById('neonModalOverlay');
+            const box = document.getElementById('neonModalBox');
+            const text = document.getElementById('neonModalText');
+            box.className = `neon-modal ${tipo}`; 
+            text.innerHTML = mensaje;
+            overlay.style.display = 'flex';
+        }
+
+        function cerrarModalNeon() { document.getElementById('neonModalOverlay').style.display = 'none'; }
+
+        function inicializar() { 
+            verificarEstadoInstalacion();
+            renderizarAgenda(); 
+            renderizarTabla(); 
+            renderizarExpedientes(); 
+        }
+
+        function obtenerCodigoCliente(telefono) {
+            let existe = reservas.find(r => r.tel === telefono);
+            return existe ? existe.codigo : 'FNC-' + Math.floor(1000 + Math.random() * 9000);
+        }
+
+        function calcularSelloActual(telefono) {
+            let reservasCliente = reservas.filter(r => r.tel === telefono);
+            let total = reservasCliente.length;
+            let ciclo = total % 10;
+            return ciclo === 9 ? 'GRATIS' : ciclo + 1; 
+        }
+
+        function consultarSellosCliente() {
+            let tel = document.getElementById('consultaTelCliente').value.trim();
+            if(!tel) {
+                mostrarAlerta("Por favor escribe el número de teléfono del cliente.", "error");
+                return;
+            }
+            let reservasCliente = reservas.filter(r => r.tel === tel);
+            let totalHistorial = reservasCliente.length;
+            let ciclo = totalHistorial % 10;
+            let faltantes = 10 - ciclo;
+
+            let estadoSelloHTML = ciclo === 9 
+                ? `<div style="color:var(--primary); font-size:15px; margin-top:10px;">🎁 <b>¡LA PRÓXIMA RESERVA ES COMPLETAMENTE GRATIS!</b></div>`
+                : `<div style="color:var(--amber); font-size:13px; margin-top:10px;">Lleva <b>${ciclo}/10 sellos</b> acumulados.<br>Faltan <b>${faltantes} reservas</b> para la hora gratis.</div>`;
+
+            let nombreCliente = reservasCliente.length > 0 ? reservasCliente[reservasCliente.length - 1].nombre : "Cliente Nuevo";
+
+            mostrarAlerta(`
+                <div style="text-align:left;">
+                    <span style="color:var(--primary); font-size:11px;">👤 CLIENTE: <b>${nombreCliente}</b></span>
+                    <h3 style="margin-top:4px; margin-bottom:8px; color:white;">Programa de Fidelización</h3>
+                    <hr style="border-color:var(--border); margin-bottom:8px;">
+                    <p style="font-size:12px;">📱 <b>Teléfono:</b> ${tel}</p>
+                    <p style="font-size:12px;">⚽ <b>Total Reservas:</b> ${totalHistorial}</p>
+                    ${estadoSelloHTML}
+                </div>
+            `, "info");
+        }
+
+        function verificarSellosEnVivo(tel) {
+            tel = tel.trim();
+            let box = document.getElementById('indicadorBox');
+            let texto = document.getElementById('indicadorTexto');
+            if(tel.length > 6) {
+                box.style.display = 'flex';
+                let reservasCliente = reservas.filter(r => r.tel === tel);
+                let count = reservasCliente.length % 10;
+                if(count === 9) { texto.innerHTML = "🎁 ¡RESERVA GRATIS! (Sello 10)"; texto.style.color = "var(--primary)"; } 
+                else { texto.innerHTML = `${count}/10 Sellos`; texto.style.color = "var(--amber)"; }
+            } else { box.style.display = 'none'; }
+        }
+
+        /* RENDERING DE AGENDA CON NOMBRES VISIBLES SIEMPRE */
+        function renderizarAgenda() {
+            let fechaFiltro = document.getElementById('bookingDate').value;
+            let tipoCancha = document.getElementById('courtType').value;
+            let agendaDiv = document.getElementById('agendaGrid');
+            
+            document.getElementById('filtroTextoActivo').innerText = `${fechaFiltro} (${tipoCancha})`;
+            agendaDiv.innerHTML = '';
+            
+            horarios.forEach(hora => {
+                // MUESTRA TODAS LAS RESERVAS QUE COINCIDAN EN FECHA Y HORA
+                let reservasHora = reservas.filter(r => r.hora === hora && r.fecha === fechaFiltro);
+                let ocupadas = reservasHora.length;
+                let limite = 3; 
+
+                let div = document.createElement('div');
+                div.className = 'slot ' + (ocupadas >= limite ? 'lleno' : ocupadas > 0 ? 'medio' : '');
+                
+                let listaNombres = reservasHora.map(r => `
+                    <div class="cliente-tag">
+                        <b style="color:white;">👤 ${r.nombre}</b><br>
+                        <span style="color:var(--primary); font-size:10px;">${r.cancha}</span> | 
+                        <span style="color:var(--amber); font-size:10px;">${r.sello}</span>
+                    </div>
+                `).join('');
+
+                if (ocupadas >= limite) {
+                    div.innerHTML = `<strong style="color:white; font-size:12px;">${hora}</strong><br><span class="badge-status status-lleno">AGOTADO (${ocupadas}/3)</span>${listaNombres}`;
+                } else if (ocupadas > 0) {
+                    div.innerHTML = `<strong style="color:white; font-size:12px;">${hora}</strong><br><span class="badge-status status-medio">${ocupadas}/3 OCUPADAS</span>${listaNombres}`;
+                } else {
+                    div.innerHTML = `<strong style="color:white; font-size:12px;">${hora}</strong><br><span class="badge-status status-disponible">DISPONIBLE</span>`;
+                }
+                agendaDiv.appendChild(div);
+            });
+        }
+
+        function procesarRegistro(nombre, tel, fecha, hora, origen, tipoCancha) {
+            tel = tel.replace(/\s+/g, ''); 
+            
+            let reservasMismas = reservas.filter(r => r.hora === hora && r.fecha === fecha && r.cancha === tipoCancha);
+            if(reservasMismas.length >= 3) {
+                if(origen === 'Manual Web') mostrarAlerta(`🚫 Límite alcanzado para <b>${tipoCancha}</b> a las ${hora}.`, 'error');
+                return null;
+            }
+
+            if(reservasMismas.some(r => r.tel === tel)) return null;
+
+            let codigo = obtenerCodigoCliente(tel);
+            let selloEstado = calcularSelloActual(tel);
+            
+            let nuevaReserva = {
+                id: Date.now() + Math.floor(Math.random() * 100),
+                fecha: fecha,
+                codigo: codigo,
+                nombre: nombre,
+                tel: tel,
+                hora: hora,
+                cancha: tipoCancha,
+                sello: selloEstado === 'GRATIS' ? '¡GRATIS!' : `Sello #${selloEstado}`,
+                origen: origen
+            };
+
+            reservas.push(nuevaReserva);
+            localStorage.setItem('funcapaze_reservas', JSON.stringify(reservas));
+            
+            if(selloEstado === 'GRATIS' && origen === 'Manual Web') {
+                mostrarAlerta(`🎉 ¡FELICIDADES! ${nombre} completó 10 sellos. ¡Reserva GRATIS!`, 'success');
+            }
+
+            inicializar();
+            return nuevaReserva;
+        }
+
+        function registrarReserva() {
+            let nombre = document.getElementById('clientName').value;
+            let tel = document.getElementById('clientPhone').value;
+            let fecha = document.getElementById('bookingDate').value;
+            let hora = document.getElementById('bookingTimeSlot').value;
+            let cancha = document.getElementById('courtType').value;
+
+            if(!nombre || !tel || !fecha) { mostrarAlerta("Por favor llena todos los datos.", 'error'); return; }
+
+            let reserva = procesarRegistro(nombre, tel, fecha, hora, 'Manual Web', cancha);
+            
+            if(reserva) {
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientPhone').value = '';
+                document.getElementById('indicadorBox').style.display = 'none';
+                
+                let msj = `¡Hola ${nombre}! Tu reserva de *${cancha}* en FUNCAPAZE está confirmada para el ${fecha} a las ${hora}. Tu código es ${reserva.codigo}. Estado: ${reserva.sello}.`;
+                window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msj)}`, '_blank');
+            }
+        }
+
+        function enviarLink() {
+            let tel = document.getElementById('sendLinkPhone').value;
+            if(!tel) { mostrarAlerta("Ingresa un número de teléfono.", 'error'); return; }
+            let link = "https://docs.google.com/forms/d/e/1FAIpQLScv-T16LYiw5ps9Attgt-k7Tre9OgJ4On42CVa4TBKX6c3xLw/viewform";
+            let msj = `¡Hola! Reserva tu cancha en FUNCAPAZE (F5, F8 o F11) aquí: ${link}`;
+            window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msj)}`, '_blank');
+        }
+
+        function generarResumenSemanal() {
+            let hoy = new Date();
+            let hace7Dias = new Date();
+            hace7Dias.setDate(hoy.getDate() - 7);
+            
+            let resSemana = reservas.filter(r => new Date(r.fecha + "T00:00:00") >= hace7Dias);
+            let numSemana = expedientes.length + 1;
+            let nombreExpediente = `Semana ${numSemana}`;
+
+            let f5 = resSemana.filter(r => r.cancha === 'Fútbol 5').length;
+            let f8 = resSemana.filter(r => r.cancha === 'Fútbol 8').length;
+            let f11 = resSemana.filter(r => r.cancha === 'Fútbol 11').length;
+            let total = resSemana.length;
+            let gratis = resSemana.filter(r => r.sello === '¡GRATIS!').length;
+
+            expedientes.push({ id: Date.now(), nombre: nombreExpediente, fechaCreacion: hoy.toLocaleDateString(), f5, f8, f11, total, gratis });
+            localStorage.setItem('funcapaze_expedientes', JSON.stringify(expedientes));
+            renderizarExpedientes();
+
+            mostrarAlerta(`
+                <div style="text-align:left;">
+                    <span style="color:var(--primary); font-size:11px;">📁 EXPEDIENTE: <b>${nombreExpediente}</b></span>
+                    <h3 style="margin-bottom:8px; color:white;">Resumen Generado</h3>
+                    <p style="font-size:12px;">🏟️ Fútbol 5: <b style="float:right;">${f5}</b></p>
+                    <p style="font-size:12px;">🏟️ Fútbol 8: <b style="float:right;">${f8}</b></p>
+                    <p style="font-size:12px;">🏟️ Fútbol 11: <b style="float:right;">${f11}</b></p>
+                    <hr style="border-color:var(--border); margin:6px 0;">
+                    <p style="font-size:12px;">🔥 Total Reservas: <b style="color:var(--neon-blue); float:right;">${total}</b></p>
+                    <p style="font-size:12px;">🎁 Horas Gratis: <b style="color:var(--primary); float:right;">${gratis}</b></p>
+                </div>
+            `, 'success');
+        }
+
+        function renderizarExpedientes() {
+            let container = document.getElementById('expedientesContainer');
+            if (expedientes.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); font-size:12px; text-align:center;">No hay expedientes semanales guardados.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            [...expedientes].reverse().forEach(exp => {
+                let div = document.createElement('div');
+                div.className = 'expediente-card';
+                div.innerHTML = `
+                    <div>
+                        <strong style="color:var(--amber); font-size:14px;">📁 ${exp.nombre}</strong> 
+                        <span style="color:var(--text-muted); font-size:11px; margin-left:6px;">${exp.fechaCreacion}</span>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Total: <b>${exp.total} reservas</b> | F5:${exp.f5} F8:${exp.f8} F11:${exp.f11}</div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-purple" style="width:auto; padding:4px 8px; font-size:11px;" onclick="descargarExpediente('${exp.nombre}', ${exp.total}, ${exp.f5}, ${exp.f8}, ${exp.f11}, ${exp.gratis})">📄 DESCARGAR</button>
+                        <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:11px;" onclick="eliminarExpediente(${exp.id})">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function descargarExpediente(nombre, total, f5, f8, f11, gratis) {
+            let contenido = `FUNCAPAZE - ${nombre.toUpperCase()}\nReservas F5: ${f5}\nReservas F8: ${f8}\nReservas F11: ${f11}\nTOTAL RESERVAS: ${total}\nHORAS GRATIS: ${gratis}\n`;
+            let blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+            let enlace = document.createElement('a');
+            enlace.href = URL.createObjectURL(blob);
+            enlace.download = `Expediente_${nombre.replace(/\s+/g, '_')}.txt`;
+            enlace.click();
+        }
+
+        function eliminarExpediente(id) {
+            if(confirm("¿Eliminar este expediente?")) {
+                expedientes = expedientes.filter(e => e.id !== id);
+                localStorage.setItem('funcapaze_expedientes', JSON.stringify(expedientes));
+                renderizarExpedientes();
+            }
+        }
+
+        let isSyncing = false;
+        async function sincronizarBotReal(notificarVacio = false) {
+            if(isSyncing) return; 
+            
+            const urlCSVOriginal = "https://docs.google.com/spreadsheets/d/1AMzzOOTtqSIx4xcWbpYCkUdfFfFQbpkYop4dwKoBt78/export?format=csv&gid=965848863"; 
+            const urlProxy = "https://corsproxy.io/?" + encodeURIComponent(urlCSVOriginal);
+            const btn = document.getElementById('btnBot');
+            
+            if(notificarVacio && btn) btn.innerHTML = "⏳ Buscando...";
+            isSyncing = true;
+
+            try {
+                let respuesta;
+                try {
+                    respuesta = await fetch(urlProxy);
+                } catch(e1) {
+                    respuesta = await fetch(urlCSVOriginal);
+                }
+
+                let data = await respuesta.text();
+                let filas = data.split('\n'); 
+                if(filas.length < 2) {
+                    if(notificarVacio) mostrarAlerta("ℹ️ Excel sin respuestas nuevas.", 'info');
+                    if(btn) btn.innerHTML = "⚡ LEER AHORA";
+                    isSyncing = false;
+                    return;
+                }
+
+                let encabezados = filas[0].split(',');
+                let colNombre = 1, colTel = 2, colFecha = 3, colHora = 4, colCancha = -1; 
+
+                encabezados.forEach((titulo, index) => {
+                    let t = titulo.toLowerCase();
+                    if(t.includes('nombre')) colNombre = index;
+                    if(t.includes('tel') || t.includes('whatsapp')) colTel = index;
+                    if(t.includes('fecha')) colFecha = index;
+                    if(t.includes('hora')) colHora = index;
+                    if(t.includes('cancha') || t.includes('tipo')) colCancha = index;
+                });
+
+                let nuevasDetectadas = [];
+
+                filas.slice(1).forEach(fila => {
+                    if(!fila.trim()) return;
+                    let columnas = fila.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
+                    let nombreReal = columnas[colNombre] ? columnas[colNombre].replace(/"/g, '').trim() : '';
+                    let tel = columnas[colTel] ? columnas[colTel].replace(/"/g, '').trim() : '';
+                    let fechaRaw = columnas[colFecha] ? columnas[colFecha].replace(/"/g, '').trim() : '';
+                    let hora = columnas[colHora] ? columnas[colHora].replace(/"/g, '').trim() : '';
+                    
+                    let tipoCancha = "Fútbol 5";
+                    if(colCancha !== -1 && columnas[colCancha]) {
+                        let txt = columnas[colCancha].replace(/"/g, '').trim().toLowerCase();
+                        if(txt.includes('11')) tipoCancha = "Fútbol 11";
+                        else if(txt.includes('8')) tipoCancha = "Fútbol 8";
+                    }
+                    
+                    let fecha = fechaRaw || (columnas[0] ? columnas[0].replace(/"/g, '').trim().split(' ')[0] : '');
+
+                    if(fecha.includes('/')) {
+                        let p = fecha.split('/');
+                        if(p.length === 3) fecha = p[2].length === 4 ? `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}` : `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                    }
+
+                    let firmaUnica = `${tel}_${fecha}_${hora}_${tipoCancha}`.replace(/\s+/g, '');
+
+                    if(tel !== '' && nombreReal !== '' && !procesadasBot.includes(firmaUnica)) {
+                        let objGuardado = procesarRegistro(nombreReal, tel, fecha, hora, '🤖 Bot', tipoCancha);
+                        if(objGuardado) {
+                            nuevasDetectadas.push(`${objGuardado.nombre} (${tipoCancha} - ${objGuardado.sello})`);
+                            procesadasBot.push(firmaUnica);
+                            localStorage.setItem('funcapaze_procesadas_bot', JSON.stringify(procesadasBot));
+                        }
+                    }
+                });
+
+                if(nuevasDetectadas.length > 0) {
+                    mostrarAlerta(`✅ ¡NUEVAS RESERVAS AUTOMÁTICAS!<br><div style='color:var(--primary); font-size:13px; text-align:left; margin-top:8px;'>• ${nuevasDetectadas.join("<br>• ")}</div>`, 'success');
+                } else if(notificarVacio) {
+                    mostrarAlerta("ℹ️ No hay reservas nuevas.", 'info');
+                }
+                
+                inicializar(); 
+            } catch(e) {
+                if(notificarVacio) mostrarAlerta("❌ Error al conectar con el formulario.", 'error');
+            } finally {
+                if(btn) btn.innerHTML = "⚡ LEER AHORA";
+                isSyncing = false;
+            }
+        }
+
+        function renderizarTabla() {
+            let tbody = document.querySelector('#tablaReservas tbody');
+            tbody.innerHTML = '';
+            
+            [...reservas].reverse().forEach(r => {
+                let colorCancha = r.cancha === 'Fútbol 11' ? '#3b82f6' : (r.cancha === 'Fútbol 8' ? '#a855f7' : '#10b981');
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color:var(--primary); font-weight:bold;">${r.codigo}</td>
+                    <td><b>${r.nombre}</b><br><span style="color:var(--text-muted); font-size:10px;">${r.tel} | ${r.origen}</span></td>
+                    <td><strong style="color:${colorCancha}; font-size:11px;">${r.cancha}</strong></td>
+                    <td style="font-size:11px;">${r.fecha} <br> ${r.hora}</td>
+                    <td><span class="${r.sello === '¡GRATIS!' ? 'gratis-badge' : 'sello-badge'}">⚽ ${r.sello}</span></td>
+                    <td><button class="btn btn-danger" onclick="eliminarReserva(${r.id})">🗑️</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function eliminarReserva(id) {
+            if(confirm("¿Eliminar esta reserva?")) {
+                reservas = reservas.filter(r => r.id !== id);
+                localStorage.setItem('funcapaze_reservas', JSON.stringify(reservas));
+                inicializar();
+            }
+        }
+
+        window.onload = () => {
+            inicializar();
+            setInterval(() => { sincronizarBotReal(false); }, 10000);
+        };
+    </script>
+</body>
+</html>
