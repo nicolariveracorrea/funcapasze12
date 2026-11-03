@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUNCAPAZE Cliente</title>
+    <meta name="theme-color" content="#10b981" />
+    <link rel="manifest" href="manifest.json" />
+    <style>
+        :root {
+            --bg: #030712;
+            --bg-soft: #0f172a;
+            --card: #111827;
+            --input: #1f2937;
+            --primary: #10b981;
+            --primary-dark: #047857;
+            --amber: #fbbf24;
+            --danger: #ef4444;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; background: linear-gradient(180deg, #030712 0%, #0b1120 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: var(--text); }
+        body { display: flex; justify-content: center; padding: 18px; }
+        .app { max-width: 980px; width: 100%; }
+        .card { background: rgba(17, 24, 39, 0.95); border: 1px solid var(--border); border-radius: 18px; padding: 22px; box-shadow: 0 14px 35px rgba(0,0,0,0.25); }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .brand { font-size: 22px; font-weight: 800; color: var(--primary); }
+        .pill { background: rgba(16,185,129,0.14); color: var(--primary); border: 1px solid rgba(16,185,129,0.5); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .hero { text-align: center; margin-top: 18px; }
+        h1 { margin: 10px 0 8px; font-size: clamp(26px, 4vw, 42px); }
+        p { color: var(--muted); font-size: 14px; }
+        .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        button, .btn-link {
+            border: none; border-radius: 12px; padding: 12px 18px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;
+        }
+        .primary { background: linear-gradient(135deg, var(--primary), #14b8a6); color: #022c22; }
+        .secondary { background: #1f2937; color: var(--text); border: 1px solid var(--border); }
+        .danger { background: var(--danger); color: white; }
+        .install-box { margin-top: 26px; display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: center; }
+        .qr-box { background: white; border-radius: 18px; padding: 12px; width: 220px; margin: 0 auto; }
+        .qr-box img { width: 100%; display: block; }
+        form { display: grid; gap: 12px; }
+        input, select { width: 100%; background: var(--input); border: 1px solid var(--border); color: var(--text); padding: 12px 14px; border-radius: 12px; font-size: 14px; }
+        label { display: block; font-weight: 700; color: var(--muted); margin-bottom: 6px; font-size: 12px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .notice { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.28); border-radius: 12px; color: #fcd34d; padding: 12px; font-size: 12px; }
+        .profile-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .stats { display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr)); gap: 12px; margin-top: 18px; }
+        .stat { background: rgba(31,41,55,0.85); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+        .stat label { font-size: 11px; color: var(--muted); }
+        .stat strong { font-size: 22px; }
+        .progress { margin-top: 18px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 999px; height: 14px; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), #34d399); width: 0; transition: width 0.3s ease; }
+        .reservas { margin-top: 24px; display: grid; gap: 10px; }
+        .reserva { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+        .muted { color: var(--muted); }
+        .reward-box { border: 1px solid rgba(16,185,129,0.4); background: rgba(16,185,129,0.08); color: var(--text); border-radius: 12px; padding: 14px; margin-top: 18px; }
+        .price-box { background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(16,185,129,0.12)); border: 1px solid rgba(251,191,36,0.35); border-radius: 12px; padding: 14px; margin-top: 18px; }
+        .price-box strong { font-size: 28px; color: #facc15; }
+        .stamp-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+        .stamp-ball {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #eef3fb 20%, #dfe7f3 38%, #e7edf9 100%);
+            border: 2px solid #111827; box-shadow: inset 0 0 0 2px rgba(15, 23, 42, 0.7), 0 4px 10px rgba(0,0,0,0.2);
+            display: inline-flex; align-items: center; justify-content: center;
+            position: relative; color: #111827; font-size: 12px; font-weight: 900;
+        }
+        .stamp-ball::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: linear-gradient(90deg, transparent 0 14%, #111827 14% 18%, transparent 18% 32%, #111827 32% 36%, transparent 36% 64%, #111827 64% 68%, transparent 68% 82%, #111827 82% 86%, transparent 86% 100%); opacity: 0.75; }
+        .stamp-ball::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(180deg, transparent 0 40%, #111827 40% 48%, transparent 48% 52%, #111827 52% 60%, transparent 60% 100%); opacity: 0.6; }
+        .stamp-ball span { position: relative; z-index: 1; }
+        .hidden { display: none !important; }
+        @media (max-width: 720px) {
+            .install-box, .two-col, .stats { grid-template-columns: 1fr; }
+            body { padding: 12px; }
+            .card { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="card">
+            <div class="topbar">
+                <div class="brand">⚽ FUNCAPAZE</div>
+                <span class="pill">Cliente</span>
+            </div>
+
+            <section id="landing" class="screen active">
+                <div class="hero">
+                    <h1>Tu perfil y tus sellos</h1>
+                    <p>Instala la app, crea tu cuenta y consulta tus reservas, recompensas y tu progreso para la hora gratis.</p>
+                </div>
+                <div class="price-box" style="margin-top: 20px;">
+                    <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Precio por hora</div>
+                    <strong>$100.000 COP</strong>
+                    <div class="muted" style="margin-top:8px;">La tarifa vigente para cada reserva es de 100 mil pesos por hora.</div>
+                </div>
+                <div class="cta-row">
+                    <button class="primary" id="btnInstallApp">📲 Instalar app</button>
+                    <button class="secondary" id="btnGoSignup">📝 Crear cuenta</button>
+                </div>
+
+                <div class="install-box">
+                    <div class="qr-box">
+                        <img id="qrPreview" alt="Código QR para la app de FUNCAPAZE" />
+                    </div>
+                    <div>
+                        <p><strong>Escanea este QR</strong> para abrir el acceso rápido a la app y a tu perfil.</p>
+                        <p class="notice">Protección anti-estafas: se valida número de teléfono, la cuenta es única por cliente y la recompensa solo se habilita cuando se cumple el ciclo real de sellos.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="signup" class="screen">
+                <div class="profile-header">
+                    <div>
+                        <div class="pill">Nueva cuenta</div>
+                        <h2 style="margin-top:8px;">Crear mi perfil</h2>
+                    </div>
+                    <button class="secondary" id="btnBackHome">Volver</button>
+                </div>
+                <form id="formCuenta">
+                    <div class="two-col">
+                        <div>
+                            <label for="nombreCliente">Nombre completo</label>
+                            <input id="nombreCliente" type="text" placeholder="Ej: Andrés Rojas" required />
+                        </div>
+                        <div>
+                            <label for="telefonoCliente">Celular</label>
+                            <input id="telefonoCliente" type="tel" inputmode="numeric" placeholder="Ej: 3001234567" required />
+                        </div>
+                    </div>
+
+                    <div class="two-col">
+                        <div>
+                            <label for="passwordCliente">Contraseña</label>
+                            <input id="passwordCliente" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required />
+                        </div>
+                        <div>
+                            <label for="confirmPasswordCliente">Confirmar contraseña</label>
+                            <input id="confirmPasswordCliente" type="password" minlength="8" placeholder="Repite la contraseña" required />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="primary">✅ Crear mi cuenta</button>
+                </form>
+            </section>
+
+            <section id="login" class="screen">
+                <div class="profile-header">
+                    <div>
+                        <div class="pill">Ingresar</div>
+                        <h2 style="margin-top:8px;">Inicia sesión</h2>
+                    </div>
+                    <button class="secondary" id="btnBackToLanding">Volver</button>
+                </div>
+                <form id="formLogin">
+                    <div>
+                        <label for="loginTelefono">Celular</label>
+                        <input id="loginTelefono" type="tel" placeholder="Ej: 3001234567" required />
+                    </div>
+                    <div>
+                        <label for="loginPassword">Contraseña</label>
+                        <input id="loginPassword" type="password" placeholder="Tu contraseña" required />
+                    </div>
+                    <button type="submit" class="primary">🔐 Entrar</button>
+                </form>
+            </section>
+
+            <section id="perfil" class="screen">
+                <div class="profile-header">
+                    <div>
+                        <div class="pill">Perfil</div>
+                        <h2 style="margin-top:8px;" id="perfilNombre">Cliente</h2>
+                    </div>
+                    <button class="danger" id="logoutBtn">Cerrar sesión</button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <label>Sellos</label>
+                        <strong id="perfilSellos">0</strong>
+                    </div>
+                    <div class="stat">
+                        <label>Reservas</label>
+                        <strong id="perfilReservas">0</strong>
+                    </div>
+                    <div class="stat">
+                        <label>Estado</label>
+                        <strong id="perfilEstado">0/10</strong>
+                    </div>
+                </div>
+
+                <div class="progress"><div class="progress-bar" id="barraSellos"></div></div>
+
+                <div class="price-box">
+                    <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Precio por hora</div>
+                    <strong>$100.000 COP</strong>
+                    <div class="muted" style="margin-top:8px;">Tarifa vigente por cancha y por hora.</div>
+                </div>
+
+                <div class="reward-box" id="rewardBox">
+                    <strong>Recompensa:</strong>
+                    <div id="rewardText">Faltan 10 sellos para tu hora gratis.</div>
+                </div>
+
+                <div class="stamp-row" id="stampRow" aria-label="Sellos del cliente"></div>
+
+                <div class="reservas" id="listaReservas"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const CLIENTS_KEY = 'funcapaze_clientes';
+        const ACTIVE_CLIENT_KEY = 'funcapaze_cliente_activo';
+        const RESERVAS_KEY = 'funcapaze_reservas';
+
+        const screens = {
+            landing: document.getElementById('landing'),
+            signup: document.getElementById('signup'),
+            login: document.getElementById('login'),
+            perfil: document.getElementById('perfil')
+        };
+
+        function setScreen(name) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[name].classList.add('active');
+        }
+
+        function normalizarTelefono(valor) {
+            return String(valor || '').replace(/\D/g, '').slice(-10);
+        }
+
+        function createId() {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+            return 'id_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+        }
+
+        async function sha256(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function getClientes() {
+            try {
+                return JSON.parse(localStorage.getItem(CLIENTS_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveClientes(clientes) {
+            localStorage.setItem(CLIENTS_KEY, JSON.stringify(clientes));
+        }
+
+        function getReservaCliente(phone) {
+            try {
+                const reservas = JSON.parse(localStorage.getItem(RESERVAS_KEY)) || [];
+                return reservas.filter(r => normalizarTelefono(r.tel) === normalizarTelefono(phone));
+            } catch {
+                return [];
+            }
+        }
+
+        function getCurrentClient() {
+            try {
+                const data = JSON.parse(localStorage.getItem(ACTIVE_CLIENT_KEY));
+                return data || null;
+            } catch {
+                return null;
+            }
+        }
+
+        function setCurrentClient(client) {
+            localStorage.setItem(ACTIVE_CLIENT_KEY, JSON.stringify(client));
+        }
+
+        function clearCurrentClient() {
+            localStorage.removeItem(ACTIVE_CLIENT_KEY);
+        }
+
+        function renderQr() {
+            const base = `${window.location.origin}${window.location.pathname.replace(/cliente\.html$/, '')}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(base + 'index.html')}`;
+            document.getElementById('qrPreview').src = qrUrl;
+        }
+
+        function renderProfile() {
+            const cliente = getCurrentClient();
+            if (!cliente) {
+                setScreen('landing');
+                return;
+            }
+
+            const reservas = getReservaCliente(cliente.phone);
+            const totalSellos = reservas.length;
+            const progreso = Math.min((totalSellos % 10) * 10, 100);
+            const faltantes = totalSellos >= 10 ? 0 : (10 - (totalSellos % 10 || 10));
+            const premio = totalSellos >= 10 ? 'Tu próxima reserva puede ser GRATIS.' : `Faltan ${faltantes} sellos para la hora gratis.`;
+
+            document.getElementById('perfilNombre').textContent = cliente.name;
+            document.getElementById('perfilSellos').textContent = totalSellos;
+            document.getElementById('perfilReservas').textContent = reservas.length;
+            document.getElementById('perfilEstado').textContent = `${totalSellos % 10 || 0}/10`;
+            document.getElementById('barraSellos').style.width = `${progreso}%`;
+            document.getElementById('rewardText').textContent = premio;
+
+            const stampRow = document.getElementById('stampRow');
+            stampRow.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'stamp-ball';
+                ball.style.opacity = i < totalSellos % 10 ? '1' : '0.25';
+                ball.title = i < totalSellos % 10 ? 'Sello activo' : 'Sello pendiente';
+                ball.innerHTML = '<span>⚽</span>';
+                stampRow.appendChild(ball);
+            }
+
+            const lista = document.getElementById('listaReservas');
+            lista.innerHTML = '';
+
+            if (!reservas.length) {
+                lista.innerHTML = '<div class="reserva"><strong>No tienes reservas aún.</strong><div class="muted">Cuando reserves una cancha, aparecerá aquí.</div></div>';
+                setScreen('perfil');
+                return;
+            }
+
+            reservas.slice().reverse().forEach(r => {
+                const item = document.createElement('div');
+                item.className = 'reserva';
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                        <strong>${r.cancha}</strong>
+                        <span class="pill">${r.sello || 'Sello'}</span>
+                    </div>
+                    <div class="muted" style="margin-top:8px;">${r.fecha} • ${r.hora}</div>
+                    <div class="muted" style="margin-top:4px;">Código: ${r.codigo}</div>
+                `;
+                lista.appendChild(item);
+            });
+
+            setScreen('perfil');
+        }
+
+        document.getElementById('btnInstallApp').addEventListener('click', async () => {
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+                alert('La app ya está instalada.');
+                return;
+            }
+            if (window.deferredPrompt) {
+                window.deferredPrompt.prompt();
+                await window.deferredPrompt.userChoice;
+                return;
+            }
+            alert('En una computadora, usa el botón de instalar del navegador. En móvil, abre el menú del navegador y elige “Instalar app”.');
+        });
+
+        document.getElementById('btnGoSignup').addEventListener('click', () => setScreen('signup'));
+        document.getElementById('btnBackHome').addEventListener('click', () => setScreen('landing'));
+        document.getElementById('btnBackToLanding').addEventListener('click', () => setScreen('landing'));
+
+        document.getElementById('formCuenta').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const nombre = document.getElementById('nombreCliente').value.trim();
+            const phone = normalizarTelefono(document.getElementById('telefonoCliente').value);
+            const password = document.getElementById('passwordCliente').value;
+            const confirm = document.getElementById('confirmPasswordCliente').value;
+
+            if (!nombre || phone.length !== 10) {
+                alert('Escribe un nombre y un teléfono válido (10 dígitos).');
+                return;
+            }
+            if (password.length < 8) {
+                alert('La contraseña debe tener mínimo 8 caracteres.');
+                return;
+            }
+            if (password !== confirm) {
+                alert('Las contraseñas no coinciden.');
+                return;
+            }
+
+            const clientes = getClientes();
+            if (clientes.some(c => normalizarTelefono(c.phone) === phone)) {
+                alert('Ese número ya tiene una cuenta creada.');
+                return;
+            }
+
+            const salt = createId();
+            const hash = await sha256(`${salt}:${password}`);
+            const cliente = {
+                id: createId(),
+                name: nombre,
+                phone,
+                passwordHash: hash,
+                salt,
+                createdAt: new Date().toISOString(),
+                deviceInfo: {
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform
+                }
+            };
+
+            clientes.push(cliente);
+            saveClientes(clientes);
+            setCurrentClient(cliente);
+            renderProfile();
+            document.getElementById('formCuenta').reset();
+        });
+
+        document.getElementById('formLogin').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const phone = normalizarTelefono(document.getElementById('loginTelefono').value);
+            const password = document.getElementById('loginPassword').value;
+            const clientes = getClientes();
+            const cliente = clientes.find(c => normalizarTelefono(c.phone) === phone);
+            if (!cliente) {
+                alert('No existe una cuenta con ese teléfono.');
+                return;
+            }
+
+            const hash = await sha256(`${cliente.salt}:${password}`);
+            if (hash !== cliente.passwordHash) {
+                alert('La contraseña es incorrecta.');
+                return;
+            }
+
+            setCurrentClient(cliente);
+            renderProfile();
+            document.getElementById('formLogin').reset();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            clearCurrentClient();
+            setScreen('landing');
+        });
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            window.deferredPrompt = event;
+        });
+
+        window.onload = () => {
+            renderQr();
+            const cliente = getCurrentClient();
+            if (cliente) {
+                renderProfile();
+            } else {
+                setScreen('landing');
+            }
+        };
+    </script>
+</body>
+</html>
