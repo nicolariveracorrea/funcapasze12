@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: funcapasze12
+    runtime: static
+    staticPublishPath: ./
+    buildCommand: ""
+    envVars:
+      - key: NODE_ENV
+        value: production
