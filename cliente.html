@@ -3,81 +3,267 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FUNCAPAZE Cliente</title>
-    <meta name="theme-color" content="#10b981" />
+    <title>FUNCAPAZE — Tu cancha, tus sellos, tu hora gratis</title>
+    <meta name="theme-color" content="#04160f" />
     <link rel="manifest" href="manifest.json" />
     <style>
         :root {
             --bg: #030712;
-            --bg-soft: #0f172a;
-            --card: #111827;
-            --input: #1f2937;
+            --card: rgba(15, 23, 42, 0.72);
+            --card-solid: #0f172a;
+            --input: rgba(2, 6, 23, 0.6);
             --primary: #10b981;
-            --primary-dark: #047857;
+            --primary-soft: #34d399;
             --amber: #fbbf24;
             --danger: #ef4444;
             --text: #f8fafc;
             --muted: #94a3b8;
-            --border: #334155;
+            --border: rgba(148, 163, 184, 0.18);
+            --shadow: 0 18px 45px rgba(2, 6, 23, 0.55);
         }
 
         * { box-sizing: border-box; }
-        html, body { margin: 0; min-height: 100%; background: linear-gradient(180deg, #030712 0%, #0b1120 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: var(--text); }
-        body { display: flex; justify-content: center; padding: 18px; }
-        .app { max-width: 980px; width: 100%; }
-        .card { background: rgba(17, 24, 39, 0.95); border: 1px solid var(--border); border-radius: 18px; padding: 22px; box-shadow: 0 14px 35px rgba(0,0,0,0.25); }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0; min-height: 100vh; padding: 18px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(900px 420px at 85% -10%, rgba(16, 185, 129, 0.16), transparent 65%),
+                radial-gradient(700px 380px at -10% 20%, rgba(59, 130, 246, 0.10), transparent 60%),
+                linear-gradient(180deg, #04160f 0%, #030712 45%, #020617 100%);
+            background-attachment: fixed;
+        }
+
+        .app { max-width: 760px; width: 100%; margin: 0 auto; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 26px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
         .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .brand { font-size: 22px; font-weight: 800; color: var(--primary); }
-        .pill { background: rgba(16,185,129,0.14); color: var(--primary); border: 1px solid rgba(16,185,129,0.5); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-        .screen { display: none; }
-        .screen.active { display: block; }
-        .hero { text-align: center; margin-top: 18px; }
-        h1 { margin: 10px 0 8px; font-size: clamp(26px, 4vw, 42px); }
-        p { color: var(--muted); font-size: 14px; }
-        .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        button, .btn-link {
-            border: none; border-radius: 12px; padding: 12px 18px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;
-        }
-        .primary { background: linear-gradient(135deg, var(--primary), #14b8a6); color: #022c22; }
-        .secondary { background: #1f2937; color: var(--text); border: 1px solid var(--border); }
-        .danger { background: var(--danger); color: white; }
-        .install-box { margin-top: 26px; display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: center; }
-        .qr-box { background: white; border-radius: 18px; padding: 12px; width: 220px; margin: 0 auto; }
-        .qr-box img { width: 100%; display: block; }
-        form { display: grid; gap: 12px; }
-        input, select { width: 100%; background: var(--input); border: 1px solid var(--border); color: var(--text); padding: 12px 14px; border-radius: 12px; font-size: 14px; }
-        label { display: block; font-weight: 700; color: var(--muted); margin-bottom: 6px; font-size: 12px; }
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .notice { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.28); border-radius: 12px; color: #fcd34d; padding: 12px; font-size: 12px; }
-        .profile-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .stats { display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr)); gap: 12px; margin-top: 18px; }
-        .stat { background: rgba(31,41,55,0.85); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
-        .stat label { font-size: 11px; color: var(--muted); }
-        .stat strong { font-size: 22px; }
-        .progress { margin-top: 18px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 999px; height: 14px; overflow: hidden; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), #34d399); width: 0; transition: width 0.3s ease; }
-        .reservas { margin-top: 24px; display: grid; gap: 10px; }
-        .reserva { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-        .muted { color: var(--muted); }
-        .reward-box { border: 1px solid rgba(16,185,129,0.4); background: rgba(16,185,129,0.08); color: var(--text); border-radius: 12px; padding: 14px; margin-top: 18px; }
-        .price-box { background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(16,185,129,0.12)); border: 1px solid rgba(251,191,36,0.35); border-radius: 12px; padding: 14px; margin-top: 18px; }
-        .price-box strong { font-size: 28px; color: #facc15; }
-        .stamp-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
-        .stamp-ball {
-            width: 30px; height: 30px; border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #eef3fb 20%, #dfe7f3 38%, #e7edf9 100%);
-            border: 2px solid #111827; box-shadow: inset 0 0 0 2px rgba(15, 23, 42, 0.7), 0 4px 10px rgba(0,0,0,0.2);
+
+        .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; letter-spacing: .3px; }
+        .brand-mark {
+            width: 40px; height: 40px; border-radius: 12px;
             display: inline-flex; align-items: center; justify-content: center;
-            position: relative; color: #111827; font-size: 12px; font-weight: 900;
+            font-size: 20px;
+            background: linear-gradient(135deg, rgba(16,185,129,.95), rgba(13,148,136,.85));
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
         }
-        .stamp-ball::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: linear-gradient(90deg, transparent 0 14%, #111827 14% 18%, transparent 18% 32%, #111827 32% 36%, transparent 36% 64%, #111827 64% 68%, transparent 68% 82%, #111827 82% 86%, transparent 86% 100%); opacity: 0.75; }
-        .stamp-ball::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(180deg, transparent 0 40%, #111827 40% 48%, transparent 48% 52%, #111827 52% 60%, transparent 60% 100%); opacity: 0.6; }
-        .stamp-ball span { position: relative; z-index: 1; }
-        .hidden { display: none !important; }
+        .pill {
+            background: rgba(16, 185, 129, 0.14); color: var(--primary-soft);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 999px; padding: 5px 12px;
+            font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px;
+        }
+        .pill-cancelada { background: rgba(239, 68, 68, 0.14); color: #f87171; border-color: rgba(239, 68, 68, 0.5); }
+
+        .screen { display: none; animation: screenIn .35s ease-out; }
+        .screen.active { display: block; }
+        @keyframes screenIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* ===== Landing ===== */
+        .hero { text-align: center; padding: 18px 0 8px; }
+        .hero-badge {
+            width: 74px; height: 74px; margin: 0 auto 14px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 34px;
+            background: linear-gradient(135deg, rgba(16,185,129,.35), rgba(13,148,136,.15));
+            border: 1px solid rgba(52, 211, 153, 0.45);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.35);
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: clamp(28px, 5vw, 44px); font-weight: 800; line-height: 1.15;
+            background: linear-gradient(90deg, #34d399, #a7f3d0, #34d399);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .hero p { color: var(--muted); font-size: 15px; max-width: 480px; margin: 0 auto 18px; }
+
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .feature {
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 14px 12px; text-align: center;
+        }
+        .feature .icon { font-size: 24px; }
+        .feature strong { display: block; font-size: 13px; margin: 6px 0 2px; }
+        .feature span { color: var(--muted); font-size: 11px; }
+
+        .price-hero {
+            display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(16, 185, 129, 0.12));
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            border-radius: 18px; padding: 16px 20px; margin: 18px 0;
+        }
+        .price-hero .icon { font-size: 30px; }
+        .price-amount { font-size: 34px; font-weight: 800; color: #facc15; }
+        .price-amount small { font-size: 12px; color: var(--muted); font-weight: 700; }
+        .price-note { color: var(--muted); font-size: 12px; }
+
+        .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0 6px; }
+
+        button, .btn-link {
+            border: none; border-radius: 14px; padding: 13px 20px;
+            font-weight: 800; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            font-size: 13px; letter-spacing: .4px;
+            text-transform: uppercase; transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+        }
+        button:hover { transform: translateY(-1px); filter: brightness(1.06); }
+        button:active { transform: translateY(0); }
+        .primary {
+            background: linear-gradient(135deg, var(--primary), #14b8a6);
+            color: #022c22; box-shadow: 0 10px 26px rgba(16, 185, 129, 0.35);
+        }
+        .secondary { background: rgba(2, 6, 23, 0.6); color: var(--text); border: 1px solid var(--border); }
+        .danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; box-shadow: 0 8px 22px rgba(239, 68, 68, 0.3); }
+        .ghost { background: transparent; color: var(--muted); border: 1px dashed var(--border); text-transform: none; }
+
+        /* ===== Formularios ===== */
+        .form-card { background: rgba(2, 6, 23, 0.45); border: 1px solid var(--border); border-radius: 18px; padding: 18px; margin-top: 16px; }
+        form { display: grid; gap: 12px; }
+        input, select {
+            width: 100%; background: var(--input); border: 1px solid var(--border);
+            color: var(--text); padding: 13px 14px; border-radius: 14px; font-size: 14px;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: var(--primary-soft);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.22);
+        }
+        label { display: block; font-weight: 700; color: var(--muted); margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .field-icon { position: relative; }
+        .field-icon input { padding-right: 48px; }
+        .toggle-pass {
+            position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+            background: transparent; border: none; font-size: 16px; padding: 8px; cursor: pointer; color: var(--muted);
+        }
+        .toggle-pass:hover { transform: none; color: var(--text); }
+
+        .legal { color: var(--muted); font-size: 11px; text-align: center; margin-top: 12px; }
+
+        /* ===== Perfil ===== */
+        .profile-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .stats { display: grid; grid-template-columns: repeat(3, minmax(110px, 1fr)); gap: 12px; margin-top: 20px; }
+        .stat {
+            background: rgba(2, 6, 23, 0.55); border: 1px solid var(--border);
+            border-radius: 16px; padding: 16px; text-align: center;
+        }
+        .stat label { font-size: 10px; margin: 0; }
+        .stat strong { font-size: 24px; display: block; margin-top: 4px; }
+
+        .progress {
+            margin-top: 18px; background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border); border-radius: 999px; height: 16px; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; width: 0;
+            background: linear-gradient(90deg, var(--primary), #34d399);
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.55);
+            transition: width .5s ease;
+        }
+        .progress-bar.progress-0 { width: 0%; }
+        .progress-bar.progress-1 { width: 10%; }
+        .progress-bar.progress-2 { width: 20%; }
+        .progress-bar.progress-3 { width: 30%; }
+        .progress-bar.progress-4 { width: 40%; }
+        .progress-bar.progress-5 { width: 50%; }
+        .progress-bar.progress-6 { width: 60%; }
+        .progress-bar.progress-7 { width: 70%; }
+        .progress-bar.progress-8 { width: 80%; }
+        .progress-bar.progress-9 { width: 90%; }
+
+        .price-line { color: var(--muted); font-size: 13px; margin: 10px 0 0; text-align: center; }
+        .price-line strong { color: #facc15; }
+
+        .form-title { margin: 6px 0 0; font-size: 24px; color: var(--text); }
+
+        .reward-box { border: 1px solid rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); color: var(--text); border-radius: 16px; padding: 16px; margin-top: 18px; }
+        .reward-ganado {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(52, 211, 153, 0.08));
+            border-color: #34d399;
+            box-shadow: 0 0 26px rgba(16, 185, 129, 0.25);
+        }
+
+        /* ===== Sellos: balón de fútbol ===== */
+        .stamp-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; justify-content: center; }
+        .stamp-ball {
+            width: 38px; height: 38px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            position: relative; font-size: 16px; overflow: hidden;
+            background:
+                radial-gradient(circle at 32% 26%, #ffffff 0%, #f1f5f9 38%, #cbd5e1 72%, #94a3b8 100%);
+            border: 2px solid #0f172a;
+            box-shadow: inset 0 -4px 8px rgba(15, 23, 42, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.8), 0 5px 12px rgba(0, 0, 0, 0.35);
+        }
+        /* Pentágono central negro del balón */
+        .stamp-ball::before {
+            content: ""; position: absolute; left: 50%; top: 50%;
+            width: 13px; height: 13px; transform: translate(-50%, -50%);
+            background: #0f172a;
+            clip-path: polygon(50% 0%, 95% 38%, 78% 100%, 22% 100%, 5% 38%);
+        }
+        /* Costuras hacia el borde */
+        .stamp-ball::after {
+            content: ""; position: absolute; inset: 5px; border-radius: 50%;
+            background: repeating-conic-gradient(from 18deg, rgba(15, 23, 42, 0.5) 0deg 4deg, transparent 4deg 72deg);
+            opacity: .55;
+        }
+        .stamp-ball span { position: relative; z-index: 1; text-shadow: 0 1px 0 rgba(255,255,255,.6); }
+        .stamp-active { box-shadow: inset 0 -4px 8px rgba(15,23,42,.35), 0 0 16px rgba(16, 185, 129, 0.65), 0 5px 12px rgba(0,0,0,.35); }
+        .stamp-active::before { box-shadow: 0 0 6px rgba(16, 185, 129, 0.8); }
+        .stamp-inactive { filter: grayscale(1); opacity: .28; }
+
+        /* ===== Reservas ===== */
+        .reservas { margin-top: 24px; display: grid; gap: 10px; }
+        .reserva {
+            background: rgba(2, 6, 23, 0.5); border: 1px solid var(--border);
+            border-radius: 16px; padding: 14px;
+        }
+        .muted { color: var(--muted); }
+        .client-reservation-heading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .client-reservation-time { margin-top: 8px; }
+        .client-reservation-code { margin-top: 4px; }
+
+        /* ===== Celebración: hora gratis ===== */
+        .reward-overlay {
+            position: fixed; inset: 0; z-index: 999;
+            background: rgba(2, 6, 23, 0.82); backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center; padding: 18px;
+        }
+        .reward-overlay.open { display: flex; }
+        .reward-modal {
+            max-width: 430px; width: 100%; text-align: center;
+            background: linear-gradient(160deg, #05362a 0%, #0b1120 70%);
+            border: 2px solid #34d399; border-radius: 22px; padding: 30px 24px;
+            box-shadow: 0 0 50px rgba(52, 211, 153, 0.4);
+            animation: popIn .4s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .reward-trophy { font-size: 60px; animation: bounceIn 1.4s ease infinite alternate; }
+        @keyframes bounceIn { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+        .reward-modal h2 {
+            margin: 10px 0 8px; font-size: 24px;
+            background: linear-gradient(90deg, #34d399, #facc15);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .reward-modal p { color: var(--muted); font-size: 14px; margin: 0 0 6px; }
+        .reward-confetti { font-size: 18px; letter-spacing: 6px; margin-top: 8px; }
+
         @media (max-width: 720px) {
-            .install-box, .two-col, .stats { grid-template-columns: 1fr; }
-            body { padding: 12px; }
-            .card { padding: 16px; }
+            .features, .two-col, .stats { grid-template-columns: 1fr; }
+            .feature { display: grid; grid-template-columns: auto 1fr; text-align: left; gap: 4px 10px; align-items: center; }
+            body { padding: 10px; }
+            .card { padding: 18px; }
         }
     </style>
 </head>
@@ -85,33 +271,34 @@
     <div class="app">
         <div class="card">
             <div class="topbar">
-                <div class="brand">⚽ FUNCAPAZE</div>
-                <span class="pill">Cliente</span>
+                <div class="brand"><span class="brand-mark">⚽</span> FUNCAPAZE</div>
+                <span class="pill">Cancha sintética</span>
             </div>
 
             <section id="landing" class="screen active">
                 <div class="hero">
-                    <h1>Tu perfil y tus sellos</h1>
-                    <p>Instala la app, crea tu cuenta y consulta tus reservas, recompensas y tu progreso para la hora gratis.</p>
-                </div>
-                <div class="price-box" style="margin-top: 20px;">
-                    <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Precio por hora</div>
-                    <strong>$100.000 COP</strong>
-                    <div class="muted" style="margin-top:8px;">La tarifa vigente para cada reserva es de 100 mil pesos por hora.</div>
-                </div>
-                <div class="cta-row">
-                    <button class="primary" id="btnInstallApp">📲 Instalar app</button>
-                    <button class="secondary" id="btnGoSignup">📝 Crear cuenta</button>
+                    <div class="hero-badge">🏟️</div>
+                    <h1>Reserva tu cancha y gana tu hora gratis</h1>
+                    <p>Crea tu cuenta, pide tu horario y acumula sellos jugando. Cada 10 reservas completadas te regalamos <b>una hora gratis</b>.</p>
                 </div>
 
-                <div class="install-box">
-                    <div class="qr-box">
-                        <img id="qrPreview" alt="Código QR para la app de FUNCAPAZE" />
-                    </div>
+                <div class="features">
+                    <div class="feature"><div class="icon">🏟️</div><div><strong>3 canchas</strong><span>Fútbol 5, 8 y 11</span></div></div>
+                    <div class="feature"><div class="icon">⏰</div><div><strong>8:00 AM – 10:00 PM</strong><span>Horario flexible</span></div></div>
+                    <div class="feature"><div class="icon">🎁</div><div><strong>10 sellos</strong><span>Una hora gratis</span></div></div>
+                </div>
+
+                <div class="price-hero">
+                    <div class="icon">💰</div>
                     <div>
-                        <p><strong>Escanea este QR</strong> para abrir el acceso rápido a la app y a tu perfil.</p>
-                        <p class="notice">Protección anti-estafas: se valida número de teléfono, la cuenta es única por cliente y la recompensa solo se habilita cuando se cumple el ciclo real de sellos.</p>
+                        <div class="price-amount">$<span id="precioInicio">100.000</span> <small>COP / HORA</small></div>
+                        <div class="price-note">Tarifa vigente por cancha. Paga en ventanilla al usar tu reserva.</div>
                     </div>
+                </div>
+
+                <div class="cta-row">
+                    <button class="primary" id="btnGoSignup">📝 Crear mi cuenta</button>
+                    <button class="ghost" id="btnInstallApp">📲 Instalar la app</button>
                 </div>
             </section>
 
@@ -119,12 +306,12 @@
                 <div class="profile-header">
                     <div>
                         <div class="pill">Nueva cuenta</div>
-                        <h2 style="margin-top:8px;">Crear mi perfil</h2>
+                        <h2 class="form-title">Crear mi perfil</h2>
                     </div>
                     <button class="secondary" id="btnBackHome">Volver</button>
                 </div>
-                <form id="formCuenta">
-                    <div class="two-col">
+                <div class="form-card">
+                    <form id="formCuenta">
                         <div>
                             <label for="nombreCliente">Nombre completo</label>
                             <input id="nombreCliente" type="text" placeholder="Ej: Andrés Rojas" required />
@@ -133,51 +320,65 @@
                             <label for="telefonoCliente">Celular</label>
                             <input id="telefonoCliente" type="tel" inputmode="numeric" placeholder="Ej: 3001234567" required />
                         </div>
-                    </div>
-
-                    <div class="two-col">
-                        <div>
-                            <label for="passwordCliente">Contraseña</label>
-                            <input id="passwordCliente" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required />
+                        <div class="two-col">
+                            <div>
+                                <label for="passwordCliente">Contraseña</label>
+                                <div class="field-icon">
+                                    <input id="passwordCliente" type="password" minlength="12" placeholder="Mínimo 12 caracteres" required />
+                                    <button type="button" class="toggle-pass" id="togglePass1" aria-label="Mostrar u ocultar contraseña">👁️</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="confirmPasswordCliente">Confirmar contraseña</label>
+                                <div class="field-icon">
+                                    <input id="confirmPasswordCliente" type="password" minlength="12" placeholder="Repite la contraseña" required />
+                                    <button type="button" class="toggle-pass" id="togglePass2" aria-label="Mostrar u ocultar contraseña">👁️</button>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label for="confirmPasswordCliente">Confirmar contraseña</label>
-                            <input id="confirmPasswordCliente" type="password" minlength="8" placeholder="Repite la contraseña" required />
-                        </div>
-                    </div>
-
-                    <button type="submit" class="primary">✅ Crear mi cuenta</button>
-                </form>
+                        <button type="submit" class="primary">✅ Crear mi cuenta</button>
+                    </form>
+                </div>
+                <p class="legal">Tu teléfono nunca se comparte. Tu historial de sellos queda ligado a tu número.</p>
             </section>
 
             <section id="login" class="screen">
                 <div class="profile-header">
                     <div>
-                        <div class="pill">Ingresar</div>
-                        <h2 style="margin-top:8px;">Inicia sesión</h2>
+                        <div class="pill">Bienvenido de vuelta</div>
+                        <h2 class="form-title">Inicia sesión</h2>
                     </div>
                     <button class="secondary" id="btnBackToLanding">Volver</button>
                 </div>
-                <form id="formLogin">
-                    <div>
-                        <label for="loginTelefono">Celular</label>
-                        <input id="loginTelefono" type="tel" placeholder="Ej: 3001234567" required />
-                    </div>
-                    <div>
-                        <label for="loginPassword">Contraseña</label>
-                        <input id="loginPassword" type="password" placeholder="Tu contraseña" required />
-                    </div>
-                    <button type="submit" class="primary">🔐 Entrar</button>
-                </form>
+                <div class="form-card">
+                    <form id="formLogin">
+                        <div>
+                            <label for="loginTelefono">Celular</label>
+                            <input id="loginTelefono" type="tel" placeholder="Ej: 3001234567" required />
+                        </div>
+                        <div>
+                            <label for="loginPassword">Contraseña</label>
+                            <div class="field-icon">
+                                <input id="loginPassword" type="password" placeholder="Tu contraseña" required />
+                                <button type="button" class="toggle-pass" id="togglePass3" aria-label="Mostrar u ocultar contraseña">👁️</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="primary">🔐 Entrar</button>
+                    </form>
+                </div>
+                <p class="legal">Cada reserva completada suma un sello ⚽. A los 10 sellos: hora gratis.</p>
             </section>
 
             <section id="perfil" class="screen">
                 <div class="profile-header">
                     <div>
-                        <div class="pill">Perfil</div>
-                        <h2 style="margin-top:8px;" id="perfilNombre">Cliente</h2>
+                        <div class="pill">Mis sellos</div>
+                        <h2 id="perfilNombre" class="form-title">Cliente</h2>
                     </div>
-                    <button class="danger" id="logoutBtn">Cerrar sesión</button>
+                    <div class="cta-row">
+                        <button class="secondary" id="logoutBtn">Cerrar sesión</button>
+                        <button class="danger" id="deactivateAccountBtn" type="button">Desactivar cuenta</button>
+                    </div>
                 </div>
 
                 <div class="stats">
@@ -190,35 +391,80 @@
                         <strong id="perfilReservas">0</strong>
                     </div>
                     <div class="stat">
-                        <label>Estado</label>
+                        <label>Ciclo actual</label>
                         <strong id="perfilEstado">0/10</strong>
                     </div>
                 </div>
 
                 <div class="progress"><div class="progress-bar" id="barraSellos"></div></div>
 
-                <div class="price-box">
-                    <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Precio por hora</div>
-                    <strong>$100.000 COP</strong>
-                    <div class="muted" style="margin-top:8px;">Tarifa vigente por cancha y por hora.</div>
-                </div>
+                <p class="price-line">💵 Precio por hora: <strong id="precioPerfil">$100.000 COP</strong></p>
 
                 <div class="reward-box" id="rewardBox">
-                    <strong>Recompensa:</strong>
+                    <strong>🎁 Recompensa:</strong>
                     <div id="rewardText">Faltan 10 sellos para tu hora gratis.</div>
                 </div>
 
                 <div class="stamp-row" id="stampRow" aria-label="Sellos del cliente"></div>
+
+                <div class="reward-box">
+                    <strong>📅 Solicitar reserva</strong>
+                    <form id="formReservaCliente">
+                        <div class="two-col">
+                            <div>
+                                <label for="fechaReservaCliente">Fecha</label>
+                                <input id="fechaReservaCliente" type="date" required />
+                            </div>
+                            <div>
+                                <label for="horaReservaCliente">Horario</label>
+                                <select id="horaReservaCliente" required>
+                                    <option value="08:00 AM - 09:00 AM">08:00 AM - 09:00 AM</option>
+                                    <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                                    <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                                    <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                                    <option value="12:00 PM - 01:00 PM">12:00 PM - 01:00 PM</option>
+                                    <option value="01:00 PM - 02:00 PM">01:00 PM - 02:00 PM</option>
+                                    <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                                    <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+                                    <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
+                                    <option value="05:00 PM - 06:00 PM">05:00 PM - 06:00 PM</option>
+                                    <option value="06:00 PM - 07:00 PM">06:00 PM - 07:00 PM</option>
+                                    <option value="07:00 PM - 08:00 PM">07:00 PM - 08:00 PM</option>
+                                    <option value="08:00 PM - 09:00 PM">08:00 PM - 09:00 PM</option>
+                                    <option value="09:00 PM - 10:00 PM">09:00 PM - 10:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="canchaReservaCliente">Cancha</label>
+                            <select id="canchaReservaCliente" required>
+                                <option value="Fútbol 5">Cancha Sintética Fútbol 5</option>
+                                <option value="Fútbol 8">Cancha Sintética Fútbol 8</option>
+                                <option value="Fútbol 11">Cancha Sintética Fútbol 11</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="primary">⚽ Solicitar reserva</button>
+                        <p id="reservaClienteEstado" class="muted" role="status" aria-live="polite"></p>
+                    </form>
+                </div>
 
                 <div class="reservas" id="listaReservas"></div>
             </section>
         </div>
     </div>
 
+    <div class="reward-overlay" id="rewardOverlay">
+        <div class="reward-modal">
+            <div class="reward-trophy">🏆</div>
+            <h2>¡GANASTE UNA HORA GRATIS!</h2>
+            <p id="rewardModalText">Completaste tus 10 sellos ⚽. Presenta tu cuenta en ventanilla para usar tu hora o escribe al +57 3188385367.</p>
+            <div class="reward-confetti">🎉 🎊 ⚽ 🎉 🎊</div>
+            <button class="primary" id="btnCerrarReward" type="button">¡Genial!</button>
+        </div>
+    </div>
+
     <script>
-        const CLIENTS_KEY = 'funcapaze_clientes';
-        const ACTIVE_CLIENT_KEY = 'funcapaze_cliente_activo';
-        const RESERVAS_KEY = 'funcapaze_reservas';
+        let currentProfile = null;
 
         const screens = {
             landing: document.getElementById('landing'),
@@ -236,89 +482,73 @@
             return String(valor || '').replace(/\D/g, '').slice(-10);
         }
 
-        function createId() {
-            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-            return 'id_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+        function clearClientSession() {
+            currentProfile = null;
         }
 
-        async function sha256(text) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(text);
-            const digest = await crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        function getClientes() {
-            try {
-                return JSON.parse(localStorage.getItem(CLIENTS_KEY)) || [];
-            } catch {
-                return [];
+        async function apiRequest(path, options = {}) {
+            const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+            const response = await fetch(path, { ...options, credentials: 'same-origin', headers });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const error = new Error(data.error || 'No se pudo completar la solicitud.');
+                error.status = response.status;
+                throw error;
             }
+            return data;
         }
 
-        function saveClientes(clientes) {
-            localStorage.setItem(CLIENTS_KEY, JSON.stringify(clientes));
+        function mostrarCelebracion() {
+            const overlay = document.getElementById('rewardOverlay');
+            overlay.classList.add('open');
         }
 
-        function getReservaCliente(phone) {
+        async function renderProfile() {
             try {
-                const reservas = JSON.parse(localStorage.getItem(RESERVAS_KEY)) || [];
-                return reservas.filter(r => normalizarTelefono(r.tel) === normalizarTelefono(phone));
-            } catch {
-                return [];
-            }
-        }
-
-        function getCurrentClient() {
-            try {
-                const data = JSON.parse(localStorage.getItem(ACTIVE_CLIENT_KEY));
-                return data || null;
-            } catch {
-                return null;
-            }
-        }
-
-        function setCurrentClient(client) {
-            localStorage.setItem(ACTIVE_CLIENT_KEY, JSON.stringify(client));
-        }
-
-        function clearCurrentClient() {
-            localStorage.removeItem(ACTIVE_CLIENT_KEY);
-        }
-
-        function renderQr() {
-            const base = `${window.location.origin}${window.location.pathname.replace(/cliente\.html$/, '')}`;
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(base + 'index.html')}`;
-            document.getElementById('qrPreview').src = qrUrl;
-        }
-
-        function renderProfile() {
-            const cliente = getCurrentClient();
-            if (!cliente) {
+                currentProfile = await apiRequest('/api/clientes/me');
+            } catch (error) {
+                clearClientSession();
                 setScreen('landing');
+                if (error.status !== 401) alert(error.message);
                 return;
             }
+            const { user, reservas, sellosTotal, sellosEnCiclo, horasGratisGanadas, horasGratisRedimidas } = currentProfile;
+            if (user.role !== 'cliente') {
+                clearClientSession();
+                setScreen('landing');
+                alert('Esta cuenta no es un perfil de cliente.');
+                return;
+            }
+            const faltantes = 10 - sellosEnCiclo;
+            const precio = new Intl.NumberFormat('es-CO').format(currentProfile.precioHora);
+            const recompensasVistas = Number(localStorage.getItem('funcapaze_recompensas_vistas') || 0);
+            const recompensasTotales = horasGratisGanadas + (horasGratisRedimidas || 0);
+            const premio = horasGratisGanadas > 0
+                ? `🎉 ¡Tienes ${horasGratisGanadas} hora(s) gratis por usar! Valídala en ventanilla.`
+                : `Faltan ${faltantes} sellos para tu hora gratis.`;
 
-            const reservas = getReservaCliente(cliente.phone);
-            const totalSellos = reservas.length;
-            const progreso = Math.min((totalSellos % 10) * 10, 100);
-            const faltantes = totalSellos >= 10 ? 0 : (10 - (totalSellos % 10 || 10));
-            const premio = totalSellos >= 10 ? 'Tu próxima reserva puede ser GRATIS.' : `Faltan ${faltantes} sellos para la hora gratis.`;
-
-            document.getElementById('perfilNombre').textContent = cliente.name;
-            document.getElementById('perfilSellos').textContent = totalSellos;
+            document.getElementById('perfilNombre').textContent = user.name;
+            document.getElementById('perfilSellos').textContent = sellosTotal;
             document.getElementById('perfilReservas').textContent = reservas.length;
-            document.getElementById('perfilEstado').textContent = `${totalSellos % 10 || 0}/10`;
-            document.getElementById('barraSellos').style.width = `${progreso}%`;
+            document.getElementById('perfilEstado').textContent = `${sellosEnCiclo}/10`;
+            const progressBar = document.getElementById('barraSellos');
+            progressBar.className = `progress-bar progress-${sellosEnCiclo}`;
             document.getElementById('rewardText').textContent = premio;
+            document.getElementById('rewardBox').classList.toggle('reward-ganado', horasGratisGanadas > 0);
+            document.getElementById('precioInicio').textContent = precio;
+            document.getElementById('precioPerfil').textContent = `$${precio} COP`;
+
+            if (horasGratisGanadas > 0 && recompensasTotales > recompensasVistas) {
+                localStorage.setItem('funcapaze_recompensas_vistas', String(recompensasTotales));
+                mostrarCelebracion();
+            }
 
             const stampRow = document.getElementById('stampRow');
             stampRow.innerHTML = '';
             for (let i = 0; i < 10; i++) {
                 const ball = document.createElement('div');
-                ball.className = 'stamp-ball';
-                ball.style.opacity = i < totalSellos % 10 ? '1' : '0.25';
-                ball.title = i < totalSellos % 10 ? 'Sello activo' : 'Sello pendiente';
+                ball.className = `stamp-ball ${i < sellosEnCiclo ? 'stamp-active' : 'stamp-inactive'}`;
+                ball.title = i < sellosEnCiclo ? 'Sello conseguido' : 'Sello pendiente';
                 ball.innerHTML = '<span>⚽</span>';
                 stampRow.appendChild(ball);
             }
@@ -327,7 +557,15 @@
             lista.innerHTML = '';
 
             if (!reservas.length) {
-                lista.innerHTML = '<div class="reserva"><strong>No tienes reservas aún.</strong><div class="muted">Cuando reserves una cancha, aparecerá aquí.</div></div>';
+                const vacia = document.createElement('div');
+                vacia.className = 'reserva';
+                const vaciaTitulo = document.createElement('strong');
+                vaciaTitulo.textContent = 'No tienes reservas aún.';
+                const vaciaDetalle = document.createElement('div');
+                vaciaDetalle.className = 'muted';
+                vaciaDetalle.textContent = 'Cuando reserves una cancha, aparecerá aquí.';
+                vacia.append(vaciaTitulo, vaciaDetalle);
+                lista.appendChild(vacia);
                 setScreen('perfil');
                 return;
             }
@@ -335,19 +573,43 @@
             reservas.slice().reverse().forEach(r => {
                 const item = document.createElement('div');
                 item.className = 'reserva';
-                item.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                        <strong>${r.cancha}</strong>
-                        <span class="pill">${r.sello || 'Sello'}</span>
-                    </div>
-                    <div class="muted" style="margin-top:8px;">${r.fecha} • ${r.hora}</div>
-                    <div class="muted" style="margin-top:4px;">Código: ${r.codigo}</div>
-                `;
+                const heading = document.createElement('div');
+                heading.className = 'client-reservation-heading';
+                const court = document.createElement('strong');
+                court.textContent = r.cancha;
+                const stamp = document.createElement('span');
+                stamp.className = r.estado === 'cancelada' ? 'pill pill-cancelada' : 'pill';
+                stamp.textContent = r.estado === 'completada' ? 'Sello acreditado ⚽' : r.estado === 'cancelada' ? 'Cancelada' : 'Pendiente';
+                heading.append(court, stamp);
+                const time = document.createElement('div');
+                time.className = 'muted client-reservation-time';
+                time.textContent = `${r.fecha} · ${r.hora}`;
+                const code = document.createElement('div');
+                code.className = 'muted client-reservation-code';
+                code.textContent = `Código: ${r.codigo}`;
+                item.append(heading, time, code);
                 lista.appendChild(item);
             });
 
             setScreen('perfil');
         }
+
+        function configurarMostrarPassword(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            button.addEventListener('click', () => {
+                const visible = input.type === 'text';
+                input.type = visible ? 'password' : 'text';
+                button.textContent = visible ? '👁️' : '🙈';
+            });
+        }
+        configurarMostrarPassword('passwordCliente', 'togglePass1');
+        configurarMostrarPassword('confirmPasswordCliente', 'togglePass2');
+        configurarMostrarPassword('loginPassword', 'togglePass3');
+
+        document.getElementById('btnCerrarReward').addEventListener('click', () => {
+            document.getElementById('rewardOverlay').classList.remove('open');
+        });
 
         document.getElementById('btnInstallApp').addEventListener('click', async () => {
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
@@ -359,7 +621,7 @@
                 await window.deferredPrompt.userChoice;
                 return;
             }
-            alert('En una computadora, usa el botón de instalar del navegador. En móvil, abre el menú del navegador y elige “Instalar app”.');
+            alert('En una computadora, usa el botón de instalar del navegador. En móvil, abre el menú del navegador y elige "Instalar app".');
         });
 
         document.getElementById('btnGoSignup').addEventListener('click', () => setScreen('signup'));
@@ -377,8 +639,8 @@
                 alert('Escribe un nombre y un teléfono válido (10 dígitos).');
                 return;
             }
-            if (password.length < 8) {
-                alert('La contraseña debe tener mínimo 8 caracteres.');
+            if (password.length < 12 || password.length > 128) {
+                alert('La contraseña debe tener entre 12 y 128 caracteres.');
                 return;
             }
             if (password !== confirm) {
@@ -386,60 +648,75 @@
                 return;
             }
 
-            const clientes = getClientes();
-            if (clientes.some(c => normalizarTelefono(c.phone) === phone)) {
-                alert('Ese número ya tiene una cuenta creada.');
-                return;
+            try {
+                const result = await apiRequest('/api/clientes/register', {
+                    method: 'POST',
+                    body: JSON.stringify({ name: nombre, phone, password })
+                });
+                document.getElementById('formCuenta').reset();
+                await renderProfile();
+            } catch (error) {
+                alert(error.message);
             }
-
-            const salt = createId();
-            const hash = await sha256(`${salt}:${password}`);
-            const cliente = {
-                id: createId(),
-                name: nombre,
-                phone,
-                passwordHash: hash,
-                salt,
-                createdAt: new Date().toISOString(),
-                deviceInfo: {
-                    userAgent: navigator.userAgent,
-                    language: navigator.language,
-                    platform: navigator.platform
-                }
-            };
-
-            clientes.push(cliente);
-            saveClientes(clientes);
-            setCurrentClient(cliente);
-            renderProfile();
-            document.getElementById('formCuenta').reset();
         });
 
         document.getElementById('formLogin').addEventListener('submit', async (event) => {
             event.preventDefault();
             const phone = normalizarTelefono(document.getElementById('loginTelefono').value);
             const password = document.getElementById('loginPassword').value;
-            const clientes = getClientes();
-            const cliente = clientes.find(c => normalizarTelefono(c.phone) === phone);
-            if (!cliente) {
-                alert('No existe una cuenta con ese teléfono.');
-                return;
+            try {
+                const result = await apiRequest('/api/clientes/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ phone, password })
+                });
+                document.getElementById('formLogin').reset();
+                await renderProfile();
+            } catch (error) {
+                alert(error.message);
             }
-
-            const hash = await sha256(`${cliente.salt}:${password}`);
-            if (hash !== cliente.passwordHash) {
-                alert('La contraseña es incorrecta.');
-                return;
-            }
-
-            setCurrentClient(cliente);
-            renderProfile();
-            document.getElementById('formLogin').reset();
         });
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            clearCurrentClient();
+        document.getElementById('formReservaCliente').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const submitButton = form.querySelector('button[type="submit"]');
+            const status = document.getElementById('reservaClienteEstado');
+            submitButton.disabled = true;
+            status.textContent = 'Enviando solicitud…';
+            try {
+                const result = await apiRequest('/api/reservas', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        fecha: document.getElementById('fechaReservaCliente').value,
+                        hora: document.getElementById('horaReservaCliente').value,
+                        cancha: document.getElementById('canchaReservaCliente').value
+                    })
+                });
+                status.textContent = `✅ Solicitud registrada. Código: ${result.codigo}. El sello se acredita al completar la reserva.`;
+                await renderProfile();
+            } catch (error) {
+                status.textContent = error.message;
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await apiRequest('/api/clientes/logout', { method: 'POST' }).catch(() => {});
+            clearClientSession();
             setScreen('landing');
+        });
+
+        document.getElementById('deactivateAccountBtn').addEventListener('click', async () => {
+            if (!confirm('¿Desactivar tu cuenta? Se cerrará la sesión y tu historial de reservas se conservará.')) return;
+            try {
+                const result = await apiRequest('/api/clientes/me/desactivar', { method: 'POST' });
+                clearClientSession();
+                setScreen('landing');
+                alert(result.message);
+            } catch (error) {
+                alert(error.message);
+            }
         });
 
         window.addEventListener('beforeinstallprompt', (event) => {
@@ -447,12 +724,24 @@
             window.deferredPrompt = event;
         });
 
-        window.onload = () => {
-            renderQr();
-            const cliente = getCurrentClient();
-            if (cliente) {
-                renderProfile();
-            } else {
+        if ('serviceWorker' in window.navigator) {
+            window.navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+
+        window.onload = async () => {
+            const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            const reservationDate = document.getElementById('fechaReservaCliente');
+            reservationDate.min = today;
+            reservationDate.value = today;
+            try {
+                const settings = await apiRequest('/api/settings');
+                document.getElementById('precioInicio').textContent = new Intl.NumberFormat('es-CO').format(settings.precioHora);
+            } catch {}
+            try {
+                const session = await apiRequest('/api/session');
+                if (session.authenticated) await renderProfile();
+                else setScreen('landing');
+            } catch (error) {
                 setScreen('landing');
             }
         };

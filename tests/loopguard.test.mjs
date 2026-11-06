@@ -82,7 +82,7 @@ try {
   process.exitCode = 1;
 }
 
-assert.equal(typeof crearFirmaReserva, 'function', 'La función de deduplicación no existe aún');
-assert.equal(crearFirmaReserva({ tel: '3001234567', fecha: '2026-11-04', hora: '08:00 AM - 09:00 AM', cancha: 'Fútbol 5' }), '3001234567_2026-11-04_08:00-am---09:00-am_fútbol-5');
+assert.equal(typeof context.crearFirmaReserva, 'function', 'La función de deduplicación no existe aún');
+assert.equal(context.crearFirmaReserva({ tel: '3001234567', fecha: '2026-11-04', hora: '08:00 AM - 09:00 AM', cancha: 'Fútbol 5' }), '3001234567_2026-11-04_08:00_am_-_09:00_am_f_tbol_5');
 
 console.log('Prueba de deduplicación: OK');

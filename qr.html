@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0c6b50">
+    <title>QR FUNCAPAZE</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", sans-serif;
+            background: #e9f1ed;
+            color: #17231e;
+        }
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+        main {
+            width: min(100%, 480px);
+            display: grid;
+            justify-items: center;
+            gap: 18px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        p {
+            margin: 0;
+            color: #516158;
+            font-size: 14px;
+        }
+        .qr-sheet {
+            width: min(82vw, 360px);
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #d5e0d9;
+            border-radius: 8px;
+            box-shadow: 0 12px 32px rgb(22 48 35 / 12%);
+        }
+        .qr-sheet img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .target {
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            color: #496258;
+            font-size: 12px;
+        }
+        .actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .actions a, .actions button {
+            min-height: 42px;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 6px;
+            background: #087c58;
+            color: #fff;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .actions .secondary {
+            background: #fff;
+            color: #173a2d;
+            border: 1px solid #b5c8bd;
+        }
+        #qrError { color: #a52c2c; }
+        @media print {
+            @page { size: 90mm 120mm; margin: 6mm; }
+            :root, body { min-height: 0; background: #fff; }
+            body { padding: 0; }
+            main { width: 100%; gap: 8px; }
+            h1 { font-size: 18px; }
+            p { font-size: 11px; }
+            .qr-sheet {
+                width: 76mm;
+                height: 76mm;
+                padding: 4mm;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .target, .actions, #qrError { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>FUNCAPAZE</h1>
+        <p>Escanea para abrir el portal de clientes</p>
+        <div class="qr-sheet">
+            <img id="qrImage" src="/qr.png" alt="Código QR del portal de clientes FUNCAPAZE">
+        </div>
+        <p class="target" id="targetUrl"></p>
+        <p id="qrError" role="status" hidden>No se pudo cargar el QR. Comprueba que el servidor esté activo.</p>
+        <div class="actions">
+            <a id="downloadQr" href="/qr.png" download="funcapaze-qr.png">Descargar PNG para tarjetas</a>
+            <button id="btnImprimirQr" type="button" class="secondary">Imprimir tarjeta</button>
+        </div>
+    </main>
+    <script>
+        const customerUrl = new URL('/cliente.html', window.location.origin);
+        document.getElementById('targetUrl').textContent = customerUrl.href;
+        document.getElementById('btnImprimirQr').addEventListener('click', () => window.print());
+        document.getElementById('qrImage').addEventListener('error', () => {
+            document.getElementById('qrError').hidden = false;
+        });
+    </script>
+</body>
+</html>

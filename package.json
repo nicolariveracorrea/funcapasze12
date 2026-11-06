@@ -1,0 +1,26 @@
+{
+  "name": "funcapasze12",
+  "version": "1.0.0",
+  "description": "FUNCAPAZE reservation app and API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test",
+    "create-admin": "node scripts/create-admin.js",
+    "backup": "node scripts/backup-db.js",
+    "restore": "node scripts/restore-db.js",
+    "backup-drive": "node scripts/backup-drive.js",
+    "restore-drive": "node scripts/restore-drive.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "qrcode": "^1.5.4",
+    "sqlite3": "^6.0.1"
+  }
+}

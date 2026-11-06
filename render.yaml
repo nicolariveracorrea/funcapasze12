@@ -1,9 +1,33 @@
 services:
   - type: web
-    name: funcapasze12
-    runtime: static
-    staticPublishPath: ./
-    buildCommand: ""
+    name: funcapaze-reservas-app
+    runtime: node
+    plan: 0.5c-512mb
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: DATA_DIR
+        value: /var/data
+      - key: PUBLIC_URL
+        sync: false
+      - key: BACKUP_DRIVE_ENABLED
+        value: "false"
+      - key: BACKUP_DAILY_UTC_HOUR
+        value: "3"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PHONE
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: funcapaze-data
+      mountPath: /var/data
+      sizeGB: 1
