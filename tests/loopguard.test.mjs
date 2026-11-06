@@ -22,6 +22,7 @@ const doc = {
       className: '',
       addEventListener() {},
       appendChild() {},
+      setAttribute() {},
       querySelector() { return { innerHTML: '', appendChild() {} }; },
       children: [],
       dataset: {},

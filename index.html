@@ -368,7 +368,7 @@
                     <h3 class="extracted-style-2974a2eb02e0">
                         🤖 Escáner de Formularios <span class="badge extracted-style-b3068bbfd3f8">LECTURA MANUAL</span>
                     </h3>
-                    <p class="extracted-style-cbb676fe4337">Solo consulta el formulario cuando el administrador pulsa “LEER AHORA”. Los sellos se acreditan al completar la reserva.</p>
+                    <p class="extracted-style-cbb676fe4337">Modo manual: consulta el formulario cuando el administrador pulsa “LEER AHORA”. Modo automático: consulta el formulario cada 2 minutos mientras el panel esté abierto. Los sellos se acreditan al completar la reserva.</p>
                 </div>
                 <div class="extracted-style-4f246ba1b745">
                     <button id="btnResumenSemanal" class="btn btn-amber extracted-style-dbb990788f2b">
@@ -376,6 +376,9 @@
                     </button>
                     <button id="btnBot" class="btn extracted-style-df793a89178f">
                         ⚡ LEER AHORA
+                    </button>
+                    <button id="btnBotAuto" class="btn extracted-style-df793a89178f" type="button" aria-pressed="false">
+                        🤖 AUTO: OFF
                     </button>
                 </div>
             </div>
@@ -724,6 +727,33 @@
         document.getElementById('btnInstalarLinux').addEventListener('click', abrirGuiaInstalacionLinux);
         document.getElementById('btnResumenSemanal').addEventListener('click', generarResumenSemanal);
         document.getElementById('btnBot').addEventListener('click', () => sincronizarBotReal(true));
+
+        // ===== Bot: modo automático (lee el formulario cada 2 min mientras el panel está abierto) =====
+        const BOT_AUTO_INTERVALO = 120000;
+        let botAutoHabilitado = localStorage.getItem('funcapaze_bot_auto') === 'on';
+        const btnBotAuto = document.getElementById('btnBotAuto');
+
+        function pintarBotAuto() {
+            if(!btnBotAuto) return;
+            btnBotAuto.textContent = botAutoHabilitado ? '🤖 AUTO: ON' : '🤖 AUTO: OFF';
+            btnBotAuto.setAttribute('aria-pressed', String(botAutoHabilitado));
+        }
+        pintarBotAuto();
+
+        btnBotAuto.addEventListener('click', () => {
+            botAutoHabilitado = !botAutoHabilitado;
+            localStorage.setItem('funcapaze_bot_auto', botAutoHabilitado ? 'on' : 'off');
+            pintarBotAuto();
+            if(botAutoHabilitado) mostrarAlerta('🤖 Bot automático activado: leerá el formulario cada 2 minutos.', 'info');
+            else mostrarAlerta('🤖 Bot automático desactivado: solo leerá cuando presiones LEER AHORA.', 'info');
+        });
+
+        setInterval(() => {
+            if(!botAutoHabilitado || isSyncing) return;
+            if(document.visibilityState !== 'visible') return;
+            if(!adminSessionReady) return;
+            sincronizarBotReal(false).catch(() => {});
+        }, BOT_AUTO_INTERVALO);
         document.getElementById('btnRegistrarReserva').addEventListener('click', registrarReserva);
         document.getElementById('btnEnviarFormulario').addEventListener('click', enviarLink);
         document.getElementById('btnConsultarSellos').addEventListener('click', consultarSellosCliente);
@@ -1158,21 +1188,38 @@
             if(isSyncing) return; 
             
             const urlCSVOriginal = "https://docs.google.com/spreadsheets/d/1AMzzOOTtqSIx4xcWbpYCkUdfFfFQbpkYop4dwKoBt78/export?format=csv&gid=965848863"; 
-            const urlProxy = "https://corsproxy.io/?" + encodeURIComponent(urlCSVOriginal);
+            // Varias rutas de lectura: si una falla (proxy caído, filtro de red, CORS),
+            // se prueba la siguiente automáticamente antes de rendirse.
+            // Primero el acceso directo (verificado: Google responde con CORS permite-*),
+            // luego proxies públicos como respaldo.
+            const fuentes = [
+                urlCSVOriginal,
+                "https://corsproxy.io/?" + encodeURIComponent(urlCSVOriginal),
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(urlCSVOriginal),
+                "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(urlCSVOriginal)
+            ];
             const btn = document.getElementById('btnBot');
             
             if(notificarVacio && btn) btn.innerHTML = "⏳ Buscando...";
             isSyncing = true;
 
             try {
-                let respuesta;
-                try {
-                    respuesta = await fetch(urlProxy);
-                } catch(e1) {
-                    respuesta = await fetch(urlCSVOriginal);
+                let data = null;
+                let ultimoError = null;
+                for (const fuente of fuentes) {
+                    try {
+                        const respuesta = await fetch(fuente, { signal: AbortSignal.timeout(15000) });
+                        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+                        const texto = await respuesta.text();
+                        if (!texto || texto.trim().startsWith('<')) throw new Error('Respuesta no CSV');
+                        data = texto;
+                        break;
+                    } catch (errorFuente) {
+                        ultimoError = errorFuente;
+                    }
                 }
+                if (data === null) throw ultimoError || new Error('Sin respuesta');
 
-                let data = await respuesta.text();
                 let filas = data.split(/\r?\n/);
                 if(filas.length < 2) {
                     if(notificarVacio) mostrarAlerta("ℹ️ Excel sin respuestas nuevas.", 'info');

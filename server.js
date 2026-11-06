@@ -848,7 +848,7 @@ function sendHtmlPage(res, fileName) {
     "style-src-attr 'none'",
     "img-src 'self' data:",
     "font-src 'self' data:",
-    "connect-src 'self' https://corsproxy.io https://docs.google.com",
+    "connect-src 'self' https://corsproxy.io https://api.allorigins.win https://api.codetabs.com https://docs.google.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
