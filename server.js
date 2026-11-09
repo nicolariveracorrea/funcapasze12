@@ -424,7 +424,14 @@ app.use('/api', (req, res, next) => {
   const origin = req.get('origin');
   if (!origin) return next();
   try {
-    const requestOrigin = `${req.protocol}://${req.get('host')}`;
+    // Detrás de túneles/HTTPS el proxy puede terminare TLS: si el host coincide con
+    // PUBLIC_URL, el esquema real del navegador es el de PUBLIC_URL (https).
+    const requestHost = req.get('host');
+    let requestProto = req.protocol;
+    const pub = process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL) : null;
+    if (pub && requestHost === pub.host) requestProto = pub.protocol.replace(':', '');
+    else if (req.headers['x-forwarded-proto']) requestProto = String(req.headers['x-forwarded-proto']).split(',')[0].trim();
+    const requestOrigin = `${requestProto}://${requestHost}`;
     if (new URL(origin).origin !== requestOrigin) {
       return res.status(403).json({ error: 'Solicitud de otro origen bloqueada.' });
     }
