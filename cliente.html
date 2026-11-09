@@ -653,6 +653,9 @@
         const PASOS_otros = '<b>1.</b> Toca el menú de tu navegador (⋮ en Chrome, ⋯ en Edge).<br>' +
             '<b>2.</b> Elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>.<br>' +
             '<b>3.</b> ¡Listo! Te queda con su ícono ⚽ en tu celular o PC.';
+        const PASOS_FIREFOX = '<b>1.</b> En Firefox la instalación es limitada: abre el menú ☰ y busca <b>«Instalar esta aplicación»</b> (solo en versiones recientes).<br>' +
+            '<b>2.</b> Si no aparece, abre esta misma página en <b>Google Chrome</b> y toca el botón verde <b>📲 Descargar app</b>.<br>' +
+            '<b>3.</b> En el PC del local ya queda el <b>icono FUNCAPAZE en el escritorio</b>: se abre directo como app.';
 
         async function solicitarInstalacion() {
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
@@ -667,7 +670,9 @@
                 return;
             }
             // El navegador todavía no ofrece el aviso automático: mostramos la guía manual.
-            document.getElementById('installSteps').innerHTML = esIOS() ? PASOS_IOS : PASOS_otros;
+            const uaInst = window.navigator.userAgent;
+            const esFirefoxEscritorio = /Firefox/i.test(uaInst) && !/Android|iPhone|iPad/i.test(uaInst);
+            document.getElementById('installSteps').innerHTML = esIOS() ? PASOS_IOS : (esFirefoxEscritorio ? PASOS_FIREFOX : PASOS_otros);
             document.getElementById('installOverlay').classList.add('open');
         }
 

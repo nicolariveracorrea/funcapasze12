@@ -548,15 +548,24 @@
             }
         }
 
-        function abrirGuiaInstalacionLinux() {
-            mostrarAlerta(`
+        function abrirGuiaInstalacionLinux(esFirefox) {
+            const contenido = esFirefox
+                ? `
+                <div class="extracted-style-0413867b1367">
+                    <h3 class="extracted-style-0ac7ae8b3103">Instalar FUNCAPAZE (Firefox)</h3>
+                    <p class="extracted-style-0e0b12c0376a">Firefox restringe las apps instalables. Opciones:</p>
+                    <p class="extracted-style-0e0b12c0376a">1. Abre el menú ☰ y busca <b>Instalar esta aplicación</b> (solo aparece en versiones recientes).</p>
+                    <p class="extracted-style-0e0b12c0376a">2. Si no aparece: abre esta misma página con <b>Google Chrome</b> (ya está instalado en este PC) y haz clic en el botón <b>INSTALAR APP</b>.</p>
+                    <p class="extracted-style-4406c63346cc">3. <b>Este PC ya tiene el icono FUNCAPAZE en el escritorio</b>: doble clic ahí abre la app directamente, sin navegador.</p>
+                </div>`
+                : `
                 <div class="extracted-style-0413867b1367">
                     <h3 class="extracted-style-0ac7ae8b3103">Instalar FUNCAPAZE en Linux</h3>
                     <p class="extracted-style-0e0b12c0376a">1. Abre la app en Chrome o Edge.</p>
                     <p class="extracted-style-0e0b12c0376a">2. Haz clic en el menú ⋮ y selecciona <b>Instalar app</b> o <b>Crear acceso directo</b>.</p>
                     <p class="extracted-style-4406c63346cc">3. Si no aparece, usa la opción <b>Permitir instalación</b> desde la barra de direcciones o abre <b>chrome://apps</b>.</p>
-                </div>
-            `, 'info');
+                </div>`;
+            mostrarAlerta(contenido, 'info');
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -584,7 +593,11 @@
                         if (btn) btn.classList.add('is-hidden');
                     }
                 });
+                return;
             }
+            // El navegador no ofrece el aviso automático (p. ej. Firefox de escritorio): guía manual.
+            const esFirefoxEscritorio = /Firefox/i.test(window.navigator.userAgent) && !/Android|iPhone|iPad/i.test(window.navigator.userAgent);
+            abrirGuiaInstalacionLinux(esFirefoxEscritorio);
         }
 
         // "Hoy" según la hora de Colombia (UTC-5 todo el año), igual que calcula el servidor.
@@ -732,7 +745,7 @@
         document.getElementById('btnVistaCliente').addEventListener('click', () => cambiarVista('cliente'));
         document.getElementById('btnCerrarSesionAdmin').addEventListener('click', cerrarSesionAdmin);
         document.getElementById('btnInstalarHeader').addEventListener('click', solicitarInstalacionDirecta);
-        document.getElementById('btnInstalarLinux').addEventListener('click', abrirGuiaInstalacionLinux);
+        document.getElementById('btnInstalarLinux').addEventListener('click', () => abrirGuiaInstalacionLinux());
         document.getElementById('btnResumenSemanal').addEventListener('click', generarResumenSemanal);
         document.getElementById('btnBot').addEventListener('click', () => sincronizarBotReal(true));
 
