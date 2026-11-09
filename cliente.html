@@ -50,6 +50,17 @@
 
         .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 
+        .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .install-chip {
+            background: linear-gradient(135deg, rgba(16,185,129,.95), rgba(13,148,136,.85));
+            color: #04160f; border: none; border-radius: 999px;
+            padding: 7px 14px; font-size: 12px; font-weight: 800; cursor: pointer;
+            letter-spacing: .4px;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+        }
+        .install-chip:active { transform: scale(.96); }
+        .install-chip.is-hidden { display: none; }
+
         .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; letter-spacing: .3px; }
         .brand-mark {
             width: 40px; height: 40px; border-radius: 12px;
@@ -276,7 +287,10 @@
         <div class="card">
             <div class="topbar">
                 <div class="brand"><span class="brand-mark">⚽</span> FUNCAPAZE</div>
-                <span class="pill">Cancha sintética</span>
+                <div class="topbar-right">
+                    <button type="button" class="install-chip" id="btnInstallTop" title="Descargar FUNCAPAZE como app">📲 Descargar app</button>
+                    <span class="pill">Cancha sintética</span>
+                </div>
             </div>
 
             <section id="landing" class="screen active">
@@ -468,6 +482,17 @@
         </div>
     </div>
 
+    <div class="reward-overlay" id="installOverlay">
+        <div class="reward-modal">
+            <div class="reward-trophy">📲</div>
+            <h2>Instala FUNCAPAZE como app</h2>
+            <p><b>1.</b> Toca el menú de tu navegador (⋮ en Chrome, ⋯ en iPhone).<br>
+                <b>2.</b> Elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>.<br>
+                <b>3.</b> ¡Listo! Te queda con su ícono ⚽ en tu celular o PC.</p>
+            <button class="primary" id="btnCerrarInstall" type="button">Entendido</button>
+        </div>
+    </div>
+
     <script>
         let currentProfile = null;
 
@@ -616,17 +641,26 @@
             document.getElementById('rewardOverlay').classList.remove('open');
         });
 
-        document.getElementById('btnInstallApp').addEventListener('click', async () => {
+        async function solicitarInstalacion() {
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-                alert('La app ya está instalada.');
+                document.getElementById('btnInstallTop').classList.add('is-hidden');
+                alert('La app ya está instalada 🎉 Ábrela desde tu pantalla de inicio.');
                 return;
             }
             if (window.deferredPrompt) {
                 window.deferredPrompt.prompt();
                 await window.deferredPrompt.userChoice;
+                window.deferredPrompt = null;
                 return;
             }
-            alert('En una computadora, usa el botón de instalar del navegador. En móvil, abre el menú del navegador y elige "Instalar app".');
+            // El navegador todavía no ofrece el aviso automático: mostramos la guía manual.
+            document.getElementById('installOverlay').classList.add('open');
+        }
+
+        document.getElementById('btnInstallApp').addEventListener('click', solicitarInstalacion);
+        document.getElementById('btnInstallTop').addEventListener('click', solicitarInstalacion);
+        document.getElementById('btnCerrarInstall').addEventListener('click', () => {
+            document.getElementById('installOverlay').classList.remove('open');
         });
 
         document.getElementById('btnGoSignup').addEventListener('click', () => setScreen('signup'));
@@ -733,6 +767,15 @@
             event.preventDefault();
             window.deferredPrompt = event;
         });
+
+        window.addEventListener('appinstalled', () => {
+            window.deferredPrompt = null;
+            document.getElementById('btnInstallTop').classList.add('is-hidden');
+        });
+
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            document.getElementById('btnInstallTop').classList.add('is-hidden');
+        }
 
         if ('serviceWorker' in window.navigator) {
             window.navigator.serviceWorker.register('/sw.js').catch(() => {});
