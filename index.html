@@ -499,7 +499,7 @@
         <div class="card admin-only">
             <div class="card-header extracted-style-5c8d2198c81f">
                 <div>
-                    <span class="extracted-style-3f6df44bff86">⏰ DISPONIBILIDAD (Capacidad: 3 por hora)</span>
+                    <span class="extracted-style-3f6df44bff86">⏰ DISPONIBILIDAD (Capacidad: 3 por cancha y hora)</span>
                     <h2>Agenda Diaria de Horarios</h2>
                 </div>
                 <div class="extracted-style-4406c63346cc">
@@ -587,7 +587,13 @@
             }
         }
 
-        document.getElementById('bookingDate').valueAsDate = new Date();
+        // "Hoy" según la hora de Colombia (UTC-5 todo el año), igual que calcula el servidor.
+        // valueAsDate y toISOString usan UTC: después de las 7:00 p.m. entregarían la fecha del día siguiente.
+        function fechaHoyColombia() {
+            return new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        }
+
+        document.getElementById('bookingDate').value = fechaHoyColombia();
 
         let adminSessionReady = false;
         let reservas = [];
@@ -674,6 +680,8 @@
             const rows = await adminApiRequest('/api/reservas');
             reservas = rows.map((row) => ({
                 id: row.id,
+                clienteId: row.clienteId,
+                createdAt: row.createdAt,
                 fecha: row.fecha,
                 codigo: row.codigo,
                 nombre: row.name,
@@ -783,7 +791,7 @@
         let availabilityRequest = 0;
 
         async function renderizarVistaCliente() {
-            const fecha = document.getElementById('clienteFecha')?.value || new Date().toISOString().slice(0, 10);
+            const fecha = document.getElementById('clienteFecha')?.value || fechaHoyColombia();
             const container = document.getElementById('clientAgenda');
             if (!container) return;
             const requestId = ++availabilityRequest;
@@ -876,7 +884,8 @@
         }
 
         function normalizarFecha(valor) {
-            const texto = String(valor || '').trim();
+            // Quita la parte de la hora si el valor la incluye ("09/11/2026 20:15" → "09/11/2026").
+            const texto = String(valor || '').trim().split(/[\sT]/)[0];
             if (!texto) return '';
             if (texto.includes('/')) {
                 const partes = texto.split('/');
@@ -977,13 +986,14 @@
             if(tel.length > 6) {
                 box.hidden = false;
                 let reservasCliente = reservas.filter(r => r.estado === 'completada' && normalizarTelefono(r.tel) === normalizarTelefono(tel));
-                let count = reservasCliente.length % 10;
-                if(count === 9) {
-                    texto.textContent = '🎁 ¡RESERVA GRATIS! (Sello 10)';
+                let total = reservasCliente.length;
+                // Igual que el servidor y cliente.html: la hora gratis se gana al completar 10 reservas.
+                if (total > 0 && total % 10 === 0) {
+                    texto.textContent = '🎁 ¡Hora gratis ganada! (10 sellos)';
                     texto.classList.add('stamp-ready');
                     texto.classList.remove('stamp-progress');
                 } else {
-                    texto.textContent = `${count}/10 Sellos`;
+                    texto.textContent = `${total % 10}/10 Sellos`;
                     texto.classList.add('stamp-progress');
                     texto.classList.remove('stamp-ready');
                 }
@@ -1008,10 +1018,14 @@
                 // MUESTRA TODAS LAS RESERVAS QUE COINCIDAN EN FECHA Y HORA
                 let reservasHora = reservas.filter(r => r.estado !== 'cancelada' && r.hora === hora && r.fecha === fechaFiltro);
                 let ocupadas = reservasHora.length;
-                let limite = 3; 
+
+                // El servidor acepta hasta 3 reservas POR CANCHA y hora (F5/F8/F11 → máximo 9).
+                // Marcar AGOTADO solo cuando las 3 canchas estén llenas.
+                let canchasAgenda = ['Fútbol 5', 'Fútbol 8', 'Fútbol 11'];
+                let canchasLibres = canchasAgenda.filter(cancha => reservasHora.filter(r => r.cancha === cancha).length < 3).length;
 
                 let div = document.createElement('div');
-                div.className = 'slot ' + (ocupadas >= limite ? 'lleno' : ocupadas > 0 ? 'medio' : '');
+                div.className = 'slot ' + (canchasLibres === 0 ? 'lleno' : ocupadas > 0 ? 'medio' : '');
                 
                 let listaNombres = reservasHora.map(r => `
                     <div class="cliente-tag">
@@ -1021,10 +1035,10 @@
                     </div>
                 `).join('');
 
-                if (ocupadas >= limite) {
-                    div.innerHTML = `<strong class="extracted-style-de54c5e29f3c">${hora}</strong><br><span class="badge-status status-lleno">AGOTADO (${ocupadas}/3)</span>${listaNombres}`;
+                if (canchasLibres === 0) {
+                    div.innerHTML = `<strong class="extracted-style-de54c5e29f3c">${hora}</strong><br><span class="badge-status status-lleno">AGOTADO (${ocupadas}/9)</span>${listaNombres}`;
                 } else if (ocupadas > 0) {
-                    div.innerHTML = `<strong class="extracted-style-de54c5e29f3c">${hora}</strong><br><span class="badge-status status-medio">${ocupadas}/3 OCUPADAS</span>${listaNombres}`;
+                    div.innerHTML = `<strong class="extracted-style-de54c5e29f3c">${hora}</strong><br><span class="badge-status status-medio">${ocupadas}/9 OCUPADAS (${canchasLibres} CANCHA${canchasLibres > 1 ? 'S' : ''} LIBRE${canchasLibres > 1 ? 'S' : ''})</span>${listaNombres}`;
                 } else {
                     div.innerHTML = `<strong class="extracted-style-de54c5e29f3c">${hora}</strong><br><span class="badge-status status-disponible">DISPONIBLE</span>`;
                 }
@@ -1106,20 +1120,43 @@
             window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msj)}`, '_blank');
         }
 
+        // Horas gratis otorgadas: el servidor otorga la recompensa a cada cliente registrado
+        // (con cuenta) cuando acumula 10 reservas completadas. El sello '¡GRATIS!' en la fila
+        // ya no existe en la base de datos actual.
+        function contarHorasGratisSemana(reservasSemana) {
+            let enSemana = new Set(reservasSemana);
+            let contadorCliente = new Map();
+            return [...reservas]
+                .filter(r => r.estado === 'completada' && r.clienteId)
+                .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')))
+                .reduce((total, r) => {
+                    let num = (contadorCliente.get(r.clienteId) || 0) + 1;
+                    contadorCliente.set(r.clienteId, num);
+                    return total + ((num % 10 === 0 && enSemana.has(r)) ? 1 : 0);
+                }, 0);
+        }
+
         function generarResumenSemanal() {
             let hoy = new Date();
             let hace7Dias = new Date();
             hace7Dias.setDate(hoy.getDate() - 7);
-            
-            let resSemana = reservas.filter(r => new Date(r.fecha + "T00:00:00") >= hace7Dias);
-            let numSemana = expedientes.length + 1;
+            let finHoy = new Date(`${fechaHoyColombia()}T23:59:59`);
+
+            // Solo reservas de los últimos 7 días hasta hoy; las fechas futuras
+            // se contabilizan en su semana, no en esta.
+            let resSemana = reservas.filter(r => {
+                let fechaReserva = new Date(`${r.fecha}T00:00:00`);
+                return fechaReserva >= hace7Dias && fechaReserva <= finHoy;
+            });
+            // Numerar con el número máximo ya usado para no repetir nombres tras eliminar un expediente.
+            let numSemana = expedientes.reduce((max, exp) => Math.max(max, parseInt(String(exp.nombre).replace(/\D+/g, ''), 10) || 0), 0) + 1;
             let nombreExpediente = `Semana ${numSemana}`;
 
             let f5 = resSemana.filter(r => r.cancha === 'Fútbol 5').length;
             let f8 = resSemana.filter(r => r.cancha === 'Fútbol 8').length;
             let f11 = resSemana.filter(r => r.cancha === 'Fútbol 11').length;
             let total = resSemana.length;
-            let gratis = resSemana.filter(r => r.sello === '¡GRATIS!').length;
+            let gratis = contarHorasGratisSemana(resSemana);
 
             expedientes.push({ id: Date.now(), nombre: nombreExpediente, fechaCreacion: hoy.toLocaleDateString(), f5, f8, f11, total, gratis });
             localStorage.setItem('funcapaze_expedientes', JSON.stringify(expedientes));

@@ -103,7 +103,15 @@
                 border-radius: 0;
                 box-shadow: none;
             }
-            .target, .actions, #qrError { display: none !important; }
+            .target {
+                display: block;
+                max-width: 76mm;
+                font-size: 9px;
+                line-height: 1.25;
+                font-weight: 600;
+                color: #173a2d;
+            }
+            .actions, #qrError { display: none !important; }
         }
     </style>
 </head>
