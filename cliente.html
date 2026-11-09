@@ -486,7 +486,7 @@
         <div class="reward-modal">
             <div class="reward-trophy">📲</div>
             <h2>Instala FUNCAPAZE como app</h2>
-            <p><b>1.</b> Toca el menú de tu navegador (⋮ en Chrome, ⋯ en iPhone).<br>
+            <p id="installSteps"><b>1.</b> Toca el menú de tu navegador (⋮ en Chrome, ⋯ en Edge).<br>
                 <b>2.</b> Elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>.<br>
                 <b>3.</b> ¡Listo! Te queda con su ícono ⚽ en tu celular o PC.</p>
             <button class="primary" id="btnCerrarInstall" type="button">Entendido</button>
@@ -641,6 +641,19 @@
             document.getElementById('rewardOverlay').classList.remove('open');
         });
 
+        function esIOS() {
+            const ua = window.navigator.userAgent;
+            return ['iPhone', 'iPad', 'iPod'].some(d => ua.includes(d)) ||
+                (ua.includes('Macintosh') && 'ontouchend' in document); // iPadOS se disfraza de Mac
+        }
+
+        const PASOS_IOS = '<b>1.</b> Abre esta página en <b>Safari</b> y toca el botón <b>Compartir</b> (el cuadrito con la flecha ⬆️, abajo en iPhone).<br>' +
+            '<b>2.</b> Baja en la lista y elige <b>«Añadir a pantalla de inicio»</b>.<br>' +
+            '<b>3.</b> Toca <b>«Añadir»</b> — ¡listo! ⚽ te queda como una app en tu iPhone, con su ícono en el escritorio.';
+        const PASOS_otros = '<b>1.</b> Toca el menú de tu navegador (⋮ en Chrome, ⋯ en Edge).<br>' +
+            '<b>2.</b> Elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>.<br>' +
+            '<b>3.</b> ¡Listo! Te queda con su ícono ⚽ en tu celular o PC.';
+
         async function solicitarInstalacion() {
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
                 document.getElementById('btnInstallTop').classList.add('is-hidden');
@@ -654,6 +667,7 @@
                 return;
             }
             // El navegador todavía no ofrece el aviso automático: mostramos la guía manual.
+            document.getElementById('installSteps').innerHTML = esIOS() ? PASOS_IOS : PASOS_otros;
             document.getElementById('installOverlay').classList.add('open');
         }
 
@@ -775,6 +789,20 @@
 
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
             document.getElementById('btnInstallTop').classList.add('is-hidden');
+        }
+
+        // En iPhone no llega aviso automático: enseñamos la guía UNA sola vez al entrar (no si viene por QR directo al registro).
+        if (esIOS() && window.location.hash !== '#registro') {
+            let guiaMostrada = false;
+            try { guiaMostrada = window.localStorage.getItem('guiaInstalacionIOS') === '1'; } catch {}
+            if (!guiaMostrada) {
+                window.setTimeout(() => {
+                    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
+                    document.getElementById('installSteps').innerHTML = PASOS_IOS;
+                    document.getElementById('installOverlay').classList.add('open');
+                    try { window.localStorage.setItem('guiaInstalacionIOS', '1'); } catch {}
+                }, 1600);
+            }
         }
 
         if ('serviceWorker' in window.navigator) {
