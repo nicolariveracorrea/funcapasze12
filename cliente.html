@@ -68,6 +68,10 @@
 
         .screen { display: none; animation: screenIn .35s ease-out; }
         .screen.active { display: block; }
+
+        /* El usuario queda mirando los sellos al registrar la reserva */
+        @keyframes sellosPop { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        .sellos-flash { animation: sellosPop 1.2s ease-out; }
         @keyframes screenIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
         /* ===== Landing ===== */
@@ -693,8 +697,13 @@
                         cancha: document.getElementById('canchaReservaCliente').value
                     })
                 });
-                status.textContent = `✅ Solicitud registrada. Código: ${result.codigo}. El sello se acredita al completar la reserva.`;
                 await renderProfile();
+                status.textContent = `⚽ ¡Listo! Código ${result.codigo}. Tu sello se acredita cuando la reserva se complete.`;
+                const stampRow = document.getElementById('stampRow');
+                stampRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                stampRow.classList.remove('sellos-flash');
+                void stampRow.offsetWidth; // reinicia la animación si se repite
+                stampRow.classList.add('sellos-flash');
             } catch (error) {
                 status.textContent = error.message;
             } finally {
@@ -740,10 +749,11 @@
             } catch {}
             try {
                 const session = await apiRequest('/api/session');
+                // Si llega con el QR de tarjetas (…#registro), abre directo la creación de cuenta.
                 if (session.authenticated) await renderProfile();
-                else setScreen('landing');
+                else setScreen(window.location.hash === '#registro' ? 'signup' : 'landing');
             } catch (error) {
-                setScreen('landing');
+                setScreen(window.location.hash === '#registro' ? 'signup' : 'landing');
             }
         };
     </script>

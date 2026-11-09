@@ -861,7 +861,7 @@ function sendHtmlPage(res, fileName) {
 app.get('/qr.png', async (req, res) => {
   try {
     const baseUrl = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
-    const customerUrl = new URL('/cliente.html', baseUrl).toString();
+    const customerUrl = new URL('/cliente.html#registro', baseUrl).toString();
     const image = await QRCode.toBuffer(customerUrl, {
       type: 'png',
       width: 800,
